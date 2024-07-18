@@ -8,7 +8,7 @@ use Crastlin\LaravelAnnotation\Annotation\Attributes\Controller;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Route\ApiResourceMapping;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Route\ResourceMapping;
-use Crastlin\LaravelAnnotation\Annotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use Crastlin\LaravelAnnotation\Utils\TurnBack;
 use Illuminate\Console\Command;

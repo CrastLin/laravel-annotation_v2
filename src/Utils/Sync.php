@@ -20,7 +20,7 @@ final class Sync
      */
     static function create(string $name, string $prefix = '', array $options = [], string $driver = 'redis'): Locker
     {
-        $class = '\\App\\Annotation\\Utils\\Sync\\' . ucfirst($driver);
+        $class = __NAMESPACE__ . '\\Sync\\' . ucfirst($driver);
         if (!class_exists($class))
             throw new Exception("await ext class: {$class} is not exists", 202);
         return new $class($name, $prefix, $options);

@@ -7,8 +7,8 @@ use Crastlin\LaravelAnnotation\Annotation\Attributes\SyncLock;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\SyncLockByToken;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Validation;
 use Crastlin\LaravelAnnotation\Enum\Rule;
-use Crastlin\LaravelAnnotation\Annotation\Extra\ResponseCode;
-use Crastlin\LaravelAnnotation\Annotation\Extra\Validate;
+use Crastlin\LaravelAnnotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\Validate;
 use Crastlin\LaravelAnnotation\Utils\RedisClient;
 use Crastlin\LaravelAnnotation\Utils\TurnBack;
 

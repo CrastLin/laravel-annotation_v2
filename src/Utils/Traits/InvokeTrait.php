@@ -6,7 +6,7 @@ namespace Crastlin\LaravelAnnotation\Utils\Traits;
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
 use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
-use Crastlin\LaravelAnnotation\Annotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use ReflectionClass;
 

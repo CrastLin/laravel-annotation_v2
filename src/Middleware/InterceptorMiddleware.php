@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Crastlin\LaravelAnnotation\Middleware;
 
-use Crastlin\LaravelAnnotation\Annotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 use Crastlin\LaravelAnnotation\Facades\Interceptor;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;

@@ -2,7 +2,7 @@
 
 namespace Crastlin\LaravelAnnotation\Annotation\Attributes;
 
-use Crastlin\LaravelAnnotation\Annotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class SyncLock

@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace Crastlin\LaravelAnnotation\Utils;
 
-use Crastlin\LaravelAnnotation\Annotation\Attributes\Autowired;
-use Crastlin\LaravelAnnotation\Annotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 
 class TurnBack
 {

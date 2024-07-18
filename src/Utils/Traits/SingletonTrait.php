@@ -5,7 +5,6 @@ namespace Crastlin\LaravelAnnotation\Utils\Traits;
 
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
 use Crastlin\LaravelAnnotation\Facades\Injection;
-use Crastlin\LaravelAnnotation\Facades\Interceptor;
 use ErrorException;
 use ReflectionClass;
 
