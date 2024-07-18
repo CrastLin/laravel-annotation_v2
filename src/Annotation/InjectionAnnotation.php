@@ -337,6 +337,7 @@ class InjectionAnnotation
         $arguments = '$arguments';
         $proxyFileContent = <<<php
 <?php
+use Crastlin\LaravelAnnotation\Facades\Injection;
  return new class implements \\{$interfaceClass} {
 protected string {$implementClassVar};
 protected \\{$implementClass} {$implementInstanceVar};
@@ -349,7 +350,7 @@ protected function getInstance():\\{$implementClass}
 if(!empty($thisImplementInstance))
 return $thisImplementInstance;
 $thisImplementInstance = new \\{$implementClass}();
-\App\Annotation\Facades\Injection::injectWithObject($thisImplementInstance);
+Injection::injectWithObject($thisImplementInstance);
 return $thisImplementInstance;
 }
 
