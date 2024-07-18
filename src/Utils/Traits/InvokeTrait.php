@@ -19,9 +19,9 @@ trait InvokeTrait
 
     protected ResponseCode $resCode = ResponseCode::PARAMETER_ERROR;
 
-    protected string $errText, $notice;
+    protected string $errText = '', $notice = '';
 
-    protected array $result;
+    protected array $result = [];
 
     function getResCode(): int
     {
@@ -67,7 +67,7 @@ trait InvokeTrait
     }
 
 
-    public function __invoke(string $method, array $arguments = [])
+    public function __invoke(string $method, ...$arguments)
     {
         $class = static::class;
         if (!method_exists($this, $method))

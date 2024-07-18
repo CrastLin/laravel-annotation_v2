@@ -131,7 +131,8 @@ class InjectionAnnotation
         $mtime = (string)filemtime($classFile);
         $basePath = base_path();
         // get parent class file modify time
-        if (empty($injectData['parents'])) {
+        if (empty($injectData['parents']) || (!empty($injectData['mtime']) && str_contains($injectData['mtime'], '-99'))) {
+            $injectData['parents'] = [];
             // repeat get parent class information
             $repeatGetParentClass = function (\ReflectionClass $reflect) use (&$repeatGetParentClass, &$injectData, $basePath) {
                 $parentClass = $reflect->getParentClass();
@@ -151,8 +152,12 @@ class InjectionAnnotation
         }
         if (!empty($injectData['parents'])) {
             foreach ($injectData['parents'] as $parent) {
-                if ($st = filemtime("{$basePath}{$parent['file']}"))
+                $parentFile = "{$basePath}{$parent['file']}";
+                if (is_file($parentFile) && $st = filemtime($parentFile))
                     $mtime .= sprintf('-%d', $st);
+                else {
+                    $mtime .= '-99';
+                }
             }
         }
 
@@ -326,7 +331,7 @@ class InjectionAnnotation
             $parameterContent = join(' ,', $parameterContentList);
             $methodName = $method->getName();
             $returnType = $method->hasReturnType() ? ' : ' . $method->getReturnType()->getName() : '';
-            $putParametersContent = !empty($putParametersContentList) ? ' ,[' . join(' ,', $putParametersContentList) . ']' : ' ,[]';
+            $putParametersContent = !empty($putParametersContentList) ? ' ,' . join(' ,', $putParametersContentList) . '' : '';
             $methodContent .= "\r\nfunction {$methodName}({$parameterContent}){$returnType}\r\n{\r\nreturn {$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}";
         }
         $implementClassVar = '$implementClass';
@@ -421,7 +426,7 @@ php;
             } else {
                 $value = $this->take($bindName);
             }
-        }else{
+        } else {
             $bindName = !empty($property->name) ? $property->name : $property->target;
             $value = $this->exists($bindName) ? $this->take($bindName) : null;
         }
