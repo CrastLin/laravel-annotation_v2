@@ -1,0 +1,35 @@
+{
+    "name": "crastlin/laravel-annotation_v2",
+    "description": "The implemented annotations include routing, permission menu, concurrency lock, validator, and dependency injection",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Crastlin\\LaravelAnnotation\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Crastlin",
+            "email": "crastlin@163.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1.0",
+        "ext-json": "*",
+        "ext-redis": "*"
+    },
+    "minimum-stability": "dev",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Crastlin\\LaravelAnnotation\\AnnotationProvider"
+            ],
+            "aliases": {
+                "LaravelAnnotationRoute": "Crastlin\\LaravelAnnotation\\Annotation\\Route",
+                "LaravelAnnotationNode": "Crastlin\\LaravelAnnotation\\Annotation\\Node",
+                "LaravelAnnotationNodeInterface": "Crastlin\\LaravelAnnotation\\Annotation\\NodeInterface"
+            }
+        }
+    }
+}
