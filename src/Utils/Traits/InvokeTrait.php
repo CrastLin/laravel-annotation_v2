@@ -19,7 +19,7 @@ trait InvokeTrait
 
     protected ResponseCode $resCode = ResponseCode::PARAMETER_ERROR;
 
-    protected string $errText;
+    protected string $errText, $notice;
 
     protected array $result;
 
@@ -31,6 +31,11 @@ trait InvokeTrait
     function getError(): string
     {
         return $this->errText ?: '';
+    }
+
+    function getNotice(): string
+    {
+        return $this->notice ?: '';
     }
 
     function getResult(): array
