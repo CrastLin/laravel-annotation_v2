@@ -24,12 +24,7 @@
         "laravel": {
             "providers": [
                 "Crastlin\\LaravelAnnotation\\AnnotationProvider"
-            ],
-            "aliases": {
-                "LaravelAnnotationRoute": "Crastlin\\LaravelAnnotation\\Annotation\\Route",
-                "LaravelAnnotationNode": "Crastlin\\LaravelAnnotation\\Annotation\\Node",
-                "LaravelAnnotationNodeInterface": "Crastlin\\LaravelAnnotation\\Annotation\\NodeInterface"
-            }
+            ]
         }
     }
 }
