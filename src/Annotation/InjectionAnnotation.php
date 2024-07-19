@@ -253,7 +253,7 @@ class InjectionAnnotation
             if (!class_exists($property->qualifier))
                 throw new AnnotationException("Qualifier Class {$property->qualifier} is not exists", 500);
 
-            $ref = new \ReflectionClass($property->qualifier);
+            $ref = $this->exists($property->qualifier) ? $this->take($property->qualifier) : new \ReflectionClass($property->qualifier);
             $implementClass = $property->qualifier;
             $pathSplitList = explode('\\', $property->qualifier);
             $implementClassName = array_pop($pathSplitList);
@@ -282,10 +282,10 @@ class InjectionAnnotation
                 if (!is_file($classFile))
                     continue;
                 $fileName = substr($file, 0, strpos($file, '.php'));
-                $class = "{$namespace}\\Impl\\" . $fileName;
+                $class = "{$namespace}\\{$scanImplPath}\\" . $fileName;
                 if (!class_exists($class))
                     continue;
-                $ref = new \ReflectionClass($class);
+                $ref = $this->exists($class) ? $this->take($class) : new \ReflectionClass($class);
                 if ($ref->implementsInterface($interfaceClass)) {
                     $implementClass = $class;
                     $implementClassName = $fileName;
@@ -323,16 +323,17 @@ class InjectionAnnotation
                 if ($parameter->isDefaultValueAvailable()) {
                     $value = $parameter->getDefaultValue();
                     $valueStr = is_null($value) ? 'null' : ($value == '' ? "''" : $value);
-                    $parameterContent .= ' = ' . $valueStr;
+                    var_dump($valueStr);
+                    $parameterContent .= ' = ' . var_export($valueStr, true);
                 }
                 $parameterContentList[] = $parameterContent;
                 $putParametersContentList[] = $putParametersContent;
             }
-            $parameterContent = join(' ,', $parameterContentList);
+            $parameterContent = join(', ', $parameterContentList);
             $methodName = $method->getName();
             $returnType = $method->hasReturnType() ? ' : ' . $method->getReturnType()->getName() : '';
-            $putParametersContent = !empty($putParametersContentList) ? ' ,' . join(' ,', $putParametersContentList) . '' : '';
-            $methodContent .= "\r\nfunction {$methodName}({$parameterContent}){$returnType}\r\n{\r\nreturn {$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}";
+            $putParametersContent = !empty($putParametersContentList) ? ', ' . join(', ', $putParametersContentList) . '' : '';
+            $methodContent .= "function {$methodName}({$parameterContent}){$returnType}\r\n{\r\nreturn {$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}";
         }
         $implementClassVar = '$implementClass';
         $thisImplementClassVar = '$this->implementClass';
@@ -358,9 +359,7 @@ $thisImplementInstance = new \\{$implementClass}();
 Injection::injectWithObject($thisImplementInstance);
 return $thisImplementInstance;
 }
-
 {$methodContent}
-
 function __call(string {$method}, array {$arguments})
 {
    return $getInstanceVar({$method}, ...{$arguments});
