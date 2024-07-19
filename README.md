@@ -1,7 +1,4 @@
 # 全新版本 laravel-annotation_v2 使用指南
-<style>
- .tag{display: inline-block;padding:0 3px;background: white;color:#666;border-radius: 5px;}
-</style>
 *** 
 > 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh)的原生支持，这更有利于我们创建属更方便更好用的注解工具利器，为我们的编码工作带来更快的效率。本版本已支持的注解功能有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造函数（Constructor）、方法（Method）、参数（Parameter），可支持Laravel config配置注入和Env环境配置注入。
 
@@ -174,3 +171,9 @@ Route::prefix('api')
 ### 三、拦截器注解
 
 ### 四、依赖注入注解
+
+### 五、代码贡献
+* crastlin@163.com
+
+### 六、使用必读
+* 使用此插件请遵守法律法规，请勿在非法和违法应用中使用，产生的一切后果和法律责任均与作者无关！
