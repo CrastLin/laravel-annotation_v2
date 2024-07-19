@@ -1,6 +1,6 @@
 # 全新版本 laravel-annotation_v2 使用指南
 *** 
-> 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh)的原生支持，这更有利于我们创建属更方便更好用的注解工具利器，为我们的编码工作带来更快的效率。本版本已支持的注解功能有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造函数（Constructor）、方法（Method）、参数（Parameter），可支持Laravel config配置注入和Env环境配置注入。
+> 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh)的原生支持，这有利于我们创建更快的更好用的注解工具利器，为我们的编码工作带来更高的效率。本版本已支持的注解功能有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造函数（Constructor）、方法（Method）、参数（Parameter），可支持Laravel config配置注入和Env环境配置注入。
 
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation 传送 ](https://github.com/CrastLin/laravel-annotation)
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation使用demo](https://github.com/CrastLin/laravel-annotation-demo)
