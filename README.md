@@ -8,13 +8,13 @@
 ## 1、安装注解依赖
 ####  由于依赖包使用了[PHP8.1枚举](https://www.php.net/releases/8.1/en.php)，因此版本 PHP >= 8.1，在需要安装的laravel根目录下，执行以下命令
 ````shell
-[root@local]# composer require crastlin/laravel-annotation_v2:latest
+composer require crastlin/laravel-annotation_v2:latest
 ````
 > Tips: 也可以在composer.json的 require内定义："crastlin/laravel-annotation_v2": "v1.0.6-alpha"
 ## 2、初始化配置文件
 #### 输入以下命令创建注解配置: config/annotation.php
 ````shell
-[root@local]# annotation:config
+annotation:config
 ````
 * 配置项在以下具体功能中会详情说明
 
@@ -23,12 +23,14 @@
 ### 1、路由模块注解
 ### 1.1 路由定义
 * 在控制器中使用以下注解，快速创建一条路由
+> Tips: 需要在类上配置 Controller 注解，否则将被排除扫描
 
 ````php
 namespace App\Http\Controllers\Portal;
 use \Illuminate\Routing\Controller;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Route;
 
+#[Controller]
 class IndexController extends Controller
 {
      #[Route("index")]
@@ -51,6 +53,7 @@ use \Illuminate\Routing\Controller;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Route;
 use Crastlin\LaravelAnnotation\Enum\Method;
 
+#[Controller]
 class IndexController extends Controller
 {
      #[Route("index", method: Method::POST)]
@@ -63,6 +66,7 @@ class IndexController extends Controller
 或者使用PostMapping
 ````php
 
+#[Controller]
 class IndexController extends Controller
 {
      #[PostMapping("index")]
@@ -96,7 +100,7 @@ Route::controller(App\Http\Controllers\Portal\IndexController::class)->group(fun
  - - <b class="tag">where</b> &nbsp;&nbsp;定义路由条件，可定义验证请求的路由参数，例如：path定义了，/index/{id}，可配置where: ['id' => '[0-9]+']
 
 
-- 更新的路由注解，请查看Router接口的实现类，包括常用的PostMapping / GetMapping / AnyMapping等
+> 更新的路由注解，请查看Router接口的实现类，包括常用的PostMapping / GetMapping / AnyMapping等
 
 
 - 路由更多的使用请参考[Laravel9中文文档](https://learnku.com/docs/laravel/9.x/routing/12209#296672)
@@ -106,6 +110,7 @@ Route::controller(App\Http\Controllers\Portal\IndexController::class)->group(fun
 * 使用Group注解，实现路由分组
 ````php
  #[Group("api")]
+ #[Controller]
  class IndexController extends Controller
 {
      #[PostMapping("index")]
@@ -134,6 +139,7 @@ Route::prefix('api')
 - 使用路由中间件
 ````php
  #[Group("api", middleware: "checker")]
+ #[Controller]
  class IndexController extends Controller
 {
      #[PostMapping("index")]
@@ -166,14 +172,86 @@ Route::prefix('api')
  });
 ````
 
-### 二、菜单权限注解
+- 绑定域名可配置domain 或者使用Domain注解
+````php
+ #[Group("api", middleware: "checker")]
+ #[Domain("xxx.com")]
+ #[Controller]
+ class IndexController extends Controller
+{
+     #[PostMapping("index")]
+     function home()
+     {
+        // todo
+     }
+     
+     #[PostMapping("article")]
+     function news()
+     {
+        // todo
+     }
+}
 
-### 三、拦截器注解
+````
+> Tips: Group支持类注解和方法注解，可以配合Domain / Middleware / Domain 注解使用    
+> 可以在 config/annotation.php 的 route 配置项中，配置 root_group 项，可实现模块化分组
 
-### 四、依赖注入注解
+### 1.3 资源路由
+> 资源路由不常用的接口实现方式，其以固定的请求方式和路由参数组合标准，可快速注册路由，可以使用注解：ResourceMapping 和 ApiResourceMapping 生成一组资源路由，实现接口：Crastlin\LaravelAnnotation\Annotation\Attributes\ResourceInterface，快速生成对应的方法
 
-### 五、代码贡献
-* crastlin@163.com
+- 使用以下注解创建一个资源路由
+````php
+ #[ResourceMapping("product")]
+ #[Controller]
+ class IndexController extends Controller implements ResourceInterface
+{
+     function index()
+    {
 
-### 六、使用必读
-* 使用此插件请遵守法律法规，请勿在非法和违法应用中使用，产生的一切后果和法律责任均与作者无关！
+        var_dump("=== is index cate ===");
+    }
+
+    function create()
+    {
+        var_dump("=== is create cate ===");
+    }
+
+    function store()
+    {
+        var_dump("=== is store cate ===");
+    }
+
+    function show(int $id)
+    {
+        var_dump("=== is show cate {$id} ===");
+    }
+
+    function edit(int $id)
+    {
+        var_dump("=== is edit cate {$id} ===");
+    }
+
+    function update(int $id)
+    {
+        var_dump("=== is update cate {$id} ===");
+    }
+
+    function destroy(int $id)
+    {
+        var_dump("=== is destroy cate {$id} ===");
+    }
+}
+
+
+````
+## 二、菜单权限注解
+
+## 三、拦截器注解
+
+## 四、依赖注入注解
+
+## 五、代码贡献
+### crastlin@163.com
+
+## 六、使用必读
+### 使用此插件请遵守法律法规，请勿在非法和违法应用中使用，产生的一切后果和法律责任均与作者无关！
