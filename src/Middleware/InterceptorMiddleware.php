@@ -30,7 +30,8 @@ class InterceptorMiddleware
         $interceptorConfig = null;
         $turnBack = Interceptor::handle($action, $datum, function () use (&$next, &$response, $request) {
             $response = $next($request);
-        }, $interceptorConfig, fn($field) => $request->header($field));
+        }, $interceptorConfig, fn(string $method, string $field) => in_array($method, ['input', 'get', 'header', 'query', 'post', 'date']) && method_exists($request, $method) ? call_user_func_array([$request, $method], [$field]) : null
+        );
         return match ($turnBack->code) {
             ResponseCode::PASSED => $next($request),
             ResponseCode::IS_LOCKED, ResponseCode::PARAMETER_ERROR => response()->json(isset($turnBack->data['code']) ? $turnBack->data : ['code' => $turnBack->code->value, 'msg' => $turnBack->message])->header('Pragma', 'no-cache')

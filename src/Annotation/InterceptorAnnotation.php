@@ -127,7 +127,7 @@ class InterceptorAnnotation extends Annotation
     }
 
 
-    function handle(string $action, ?array $datum = [], callable $callback = null, ?\stdClass &$interceptor = null, ?callable $header = null): TurnBack
+    function handle(string $action, ?array $datum = [], callable $callback = null, ?\stdClass &$interceptor = null, ?callable $inputDatum = null): TurnBack
     {
         $config = config('annotation');
         $interceptorConfig = $config['interceptor'] ?? [];
@@ -157,15 +157,15 @@ class InterceptorAnnotation extends Annotation
                     $annotation->suffixeses[] = $annotation->suffixes;
                 $suffixKey = '';
                 foreach ($annotation->suffixes as $suffix):
-                    $suffixList = explode('.', $suffix);
-                    $count = count($suffixList);
-                    list($method, $parameter) = [
-                        $count >= 2 ? $suffixList[0] : 'input',
-                        $count >= 2 ? $suffixList[1] : $suffixList[0],
-                    ];
-                    if (str_starts_with($parameter, '$')) {
-                        $field = str_replace(['{', '}'], '', substr($parameter, 1));
-                        $value = $method == 'header' ? (!is_null($header) ? $header($field) : '') : $all[$field] ?? '';
+                    if (preg_match('~^\{([\w\.]+)\}$~', $suffix, $matches) && !empty($matches[1])) {
+                        $suffixList = explode('.', $matches[1]);
+                        $count = count($suffixList);
+                        list($method, $field) = [
+                            $count >= 2 ? $suffixList[0] : 'input',
+                            $count >= 2 ? join('.', array_slice($suffixList, 1)) : $suffixList[0],
+                        ];
+                        $value = !is_null($inputDatum) ? $inputDatum($method, $field) : null;
+                        $value = !is_null($value) ? $value : ($all[$field] ?? '');
                         $suffixKey .= is_string($value) ? $value : serialize($value);
                     } else {
                         $suffixKey .= ltrim($suffix, ':');

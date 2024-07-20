@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @package Validation
  * @mixin InterceptorAnnotation
- * @method static TurnBack handle(string $action, ?array $datum = [], ?callable $callback = null, ?\stdClass &$interceptor = null, ?callable $header = null)
+ * @method static TurnBack handle(string $action, ?array $datum = [], ?callable $callback = null, ?\stdClass &$interceptor = null, ?callable $inputDatum = null)
  * @method static string runValidation(array $validatorList, array $data)
  */
 class Interceptor extends Facade

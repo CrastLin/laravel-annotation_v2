@@ -13,8 +13,8 @@ class SyncLock
      *  set lock expire time, it's default value set
      *
      * @param string $name
-     * Set concurrent lock names, full name is: ${prefix}${name}:{$suffix}
-     * If suffix is not define, then full name is: ${prefix}${name}
+     * Set concurrent lock names, full name is: {prefix}{name}:{suffix}
+     * If suffix is not define, then full name is: {prefix}{name}
      * When empty, retrieve the request route corresponding to the current route
      *
      * @param bool $once
@@ -34,12 +34,14 @@ class SyncLock
      *
      * @param string $suffix
      *    Set concurrent lock name suffix
-     *   If using parameter of request, then using: suffix="$parameterName" or suffix="${parameterName}",
-     *   the parameter method default is get or post when you need special method, then using: header suffix="header.$parameterName"
-     *   input(default) suffix="${parameterName}" or suffix="input.$parameterName"
-     *   get suffix="get.$parameterName"
-     *   post suffix="post.$parameterName"
-     *   put suffix="put.$parameterName"
+     *   If using parameter of request, then using: suffix="{parameterName}",
+     *   the parameter method default is get or post when you need special method, then using: header suffix="{header.parameterName}"
+     *   input   suffix="{parameterName}" or suffix="{input.parameterName}" (default)
+     *   get     suffix="{get.parameterName}"
+     *   post    suffix="{post.parameterName}"
+     *   header  suffix="{header.parameterName}"
+     *   query   suffix="{query.parameterName}"
+     *   date    suffix="{date.$parameterName}"
      *
      * @param array $suffixes
      * many suffix set
