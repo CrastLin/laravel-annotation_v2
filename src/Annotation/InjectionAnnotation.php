@@ -203,11 +203,11 @@ class InjectionAnnotation
                 } else {
                     foreach ($target->getAttributes() as $attr) {
                         $attrName = $attr->getName();
-                        if (in_array($attrName, [Value::class, Env::class, Input::class, Inject::class, Autowired::class])) {
+                        if (in_array($attrName, [Value::class, Env::class, Inject::class, Autowired::class])) {
                             $attribute = $attr;
                             break;
                         }
-                        if (str_starts_with($attrName, __NAMESPACE__ . '\\Attributes\\Input\\')) {
+                        if (str_starts_with($attrName, __NAMESPACE__ . '\\Attributes\\Input')) {
                             $attribute = $attr;
                             break;
                         }
@@ -403,7 +403,7 @@ php;
      */
     function getInjectTypeofValue(string $class, \stdClass $property, bool $bindInjectMap = true): mixed
     {
-        if (!empty($property->annotation) && in_array($property->annotation, [Value::class, Env::class, Input::class])) {
+        if (!empty($property->annotation) && (in_array($property->annotation, [Value::class, Env::class]) || str_starts_with($property->annotation, __NAMESPACE__ . '\\Attributes\\Input'))) {
             switch ($property->annotation) {
                 case Value::class:
                     $value = config("{$property->name}");
