@@ -6,6 +6,7 @@ namespace Crastlin\LaravelAnnotation\Annotation;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Autowired;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Env;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
+use Crastlin\LaravelAnnotation\Annotation\Attributes\Input;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Qualifier;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Value;
 use Crastlin\LaravelAnnotation\Utils\Sync;
@@ -195,11 +196,22 @@ class InjectionAnnotation
                 $key = $target instanceof \ReflectionProperty ? 'properties' : 'methods';
                 if (!isset($maps[$key]))
                     $maps[$key] = [];
-                $attrs = $key == 'methods' ? $target->getAttributes(Autowired::class) : ($target->getAttributes(Inject::class) ?: $target->getAttributes(Autowired::class));
-                if (empty($attrs[0]))
+                $attribute = null;
+                if ($key == 'methods') {
+                    $attrs = $target->getAttributes(Autowired::class);
+                    $attribute = $attrs[0] ?? null;
+                } else {
+                    foreach ($target->getAttributes() as $attr) {
+                        if (in_array($attr->getName(), [Value::class, Env::class, Input::class, Inject::class, Autowired::class])) {
+                            $attribute = $attr;
+                            break;
+                        }
+                    }
+                }
+                if (!$attribute)
                     continue;
                 $qualifier = null;
-                if ($attrs[0]->getName() == Autowired::class) {
+                if ($attribute->getName() == Autowired::class) {
                     $qualifierAttr = $target->getAttributes(Qualifier::class);
                     if (!empty($qualifierAttr[0])) {
                         $qualifierInstance = $qualifierAttr[0]->newInstance();
@@ -211,9 +223,10 @@ class InjectionAnnotation
                     $propertyType = $target->getType();
                     $typeof = $propertyType instanceof \ReflectionNamedType && !$propertyType->isBuiltin() ? $propertyType->getName() : null;
                 }
-                $attr = $attrs[0]->newInstance();
+                $attr = $attribute->newInstance();
                 $map = new \stdClass();
                 $map->target = $target->getName();
+                $map->annotation = $attribute->getName();
                 $map->name = $attr->name ?? '';
                 $map->parameters = $attr->parameters ?? [];
                 $map->typeof = $typeof ?? 'mixed';
@@ -382,13 +395,16 @@ php;
      */
     function getInjectTypeofValue(string $class, \stdClass $property, bool $bindInjectMap = true): mixed
     {
-        if (!empty($property->annotation) && in_array($property->annotation, [Value::class, Env::class])) {
+        if (!empty($property->annotation) && in_array($property->annotation, [Value::class, Env::class, Input::class])) {
             switch ($property->annotation) {
                 case Value::class:
                     $value = config("{$property->name}");
                     break;
                 case Env::class:
                     $value = env("{$property->name}");
+                    break;
+                case Input::class:
+                    $value = request("{$property->name}");
                     break;
             }
             return $value ?? '';
