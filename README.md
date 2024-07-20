@@ -23,8 +23,8 @@ sudo -u www php artisan annotation:config
 
 * <b style="color:#f60">注意：根据实现的功能的需要，程序会生成缓存文件，以便更快的运行。文件根目录在config/annotation.php中的annotation_path项，默认目录在根目录的data目录，需要创建该目录，并且授权读写权限</b>
 
-### 1、路由模块注解
-### 1.1 路由定义
+## 3、路由模块注解
+### 3.1 路由定义
 * 在控制器中使用以下注解，快速创建一条路由
 > Tips: 需要在类上配置 Controller 注解，否则将被排除扫描
 
@@ -91,7 +91,7 @@ Route::controller(App\Http\Controllers\Portal\IndexController::class)->group(fun
  - - <b class="tag">path</b> &nbsp;&nbsp;路由目录，可自定义，未配置时，默认以Controllers目录下的层级生成，如以上示例，未定义path时，地址为：/Portal/Index/home
 
 
- - - <b class="tag">method</b>  &nbsp;&nbsp;限制请求类型，如果POST / GET / REQUEST等，默认为any类型，支持的类型在 <b>Crastlin\LaravelAnnotation\Enum\Method</b> 枚举类中，可以根据您的需要使用
+ - - <b class="tag">method</b>  &nbsp;&nbsp;限制请求类型，如果POST / GET / REQUEST等，默认为any类，支持的类型在包目录 <b>Enum\Method</b> 枚举类中，可以根据您的需要使用
 
 
  - - <b class="tag">methods</b> &nbsp;&nbsp;数组类型，定义多个请求类型限制，即定义多个Method枚举对象
@@ -100,16 +100,16 @@ Route::controller(App\Http\Controllers\Portal\IndexController::class)->group(fun
  - - <b class="tag">name</b> &nbsp;&nbsp;定义路由名称
 
 
- - - <b class="tag">where</b> &nbsp;&nbsp;定义路由条件，可定义验证请求的路由参数，例如：path定义了，/index/{id}，可配置where: ['id' => '[0-9]+']
+ - - <b class="tag">where</b> &nbsp;&nbsp;定义路由条件，可定义验证请求的路由参数，例如：path定义了，/index/{id}，可配置where: ['id' => '[0-9]+'] ，更多条件路由配置可使用 Annotation/Attributes/Route 目录下的条件（包含Where）路由注解
 
 
-> 更新的路由注解，请查看Router接口的实现类，包括常用的PostMapping / GetMapping / AnyMapping等，
+> 更新的路由注解，请查看Router接口的实现类，包括常用的PostMapping / GetMapping / AnyMapping等
 
 
 - 路由更多的使用请参考[Laravel9中文文档](https://learnku.com/docs/laravel/9.x/routing/12209#296672)
 
 
-### 1.2 路由分组
+### 3.2 路由分组
 * 使用Group注解，实现路由分组
 ````php
  #[Group("api")]
@@ -199,7 +199,24 @@ Route::prefix('api')
 > Tips: Group支持类注解和方法注解，可以配合Domain / Middleware / Domain 注解使用    
 > 可以在 config/annotation.php 的 route 配置项中，配置 root_group 项，可实现模块化分组
 
-### 1.3 资源路由
+* 根路由分组，默认不分组，定义格式为
+````php
+return [
+  'route' => [ 
+      // .....
+      'root_group' => [
+         // 用户模块
+         'User' => ['prefix' => 'user', 'domain' => 'user.xxx.com', 'middleware' => 'user.check'],          
+         // 管理后台
+         'Admin' => ['prefix' => 'admin', 'domain' => 'admin.xxx.com', 'middleware' => 'admin.check']
+         ], 
+         // ... 更多模块
+     ],
+     // ....
+];
+````
+
+### 3.3 资源路由
 > 资源路由不常用的接口实现方式，其以固定的请求方式和路由参数组合标准，可快速注册路由，可以使用注解：ResourceMapping 和 ApiResourceMapping 生成一组资源路由，实现接口：Crastlin\LaravelAnnotation\Annotation\Attributes\ResourceInterface，快速生成对应的方法
 
 - 使用以下注解创建一个资源路由
@@ -248,20 +265,100 @@ Route::prefix('api')
 
 ````
 
-- 可以执行以下命令主动生成路由配置
+### 3.4 路由生成
+- 路由配置自动生成开关可以在配置中修改（route > auto_create_case ），默认在开发环境路由自动生成，可以执行以下命令主动生成路由
 ````shell
 sudo -u www php artisan annotation:route 
 ````
 
-> Tips: 路由配置自动生成开关可以在配置项（route）中修改，默认在开发环境路由自动生成，建议在开发环境配置hook，每次发版完成后，执行
-## 二、菜单权限注解
+> Tips: 建议在生产环境配置hook，每次发版完成后，自动更新路由
+## 4、菜单权限注解
+> 在开发后台时，经常会需要使用到功能菜单和角色权限分配的功能，使用注解的好处在于，开发时定义好菜单树和权限节点信息，无需在数据库繁琐添加，只需要使用生成命令，快速将注解的菜单树和权限节点保存到数据库，方便环境切换和移植，为开发者整理菜单节约宝贵的时间。
+### 4.1 配置第一个节点
+- 使用 <b>Tree</b> 配置一个根节点，并使用 <b>Node</b> 配置一个子节点
+````php
+#[Tree("首页")]
+#[Controller]
+class IndexController
+{
 
-## 三、拦截器注解
+     #[Node("数据")]
+     #[PostMapping("data_list")]
+     function dataList()
+     {
+        // todo
+     }
+     
+     #[Node("新闻")]
+     #[PostMapping("articles")]
+     function newsList()
+     {
+        // todo
+     } 
+}
+````
+生成对应的节点：
+- 首页
+- - 数据
+- - 新闻
+- - ...
+> Tips: 每个控制器可配置成一个根节点，控制器内的所有方法默认都是该根节点的子节点。
 
-## 四、依赖注入注解
+### 4.2 配置父节点
+- 可以使用parent参数自定义父节点
+````php
+#[Tree("首页")]
+#[Controller]
+class IndexController
+{
 
-## 五、代码贡献
-### crastlin@163.com
+     #[Node("数据")]
+     #[PostMapping("data")]
+     function dataList()
+     {
+        // todo
+     }
+     
+     #[Node(name: "数据详情", parent: "dataList")]
+     #[PostMapping]
+     function detail()
+     {
+      // todo
+     }
+     
+     #[Node("新闻")]
+     #[PostMapping("articles")]
+     function newsList()
+     {
+        // todo
+     } 
+     
+     #[Node("新闻详情", parent: "newsList")]
+     #[PostMapping("article")]
+     function news()
+     {
+        // todo
+     } 
+}
+````
+生成对应的节点：
+- 首页
+- - 数据
+- - - 数据详情
+- - 新闻
+- - - 新闻详情
+- - ...
+> Tips: 如果父节点不在当前控制器，则parent配置控制器目录 {controller}/{action}，例如：parent: "User/index"，如果是跨模块。则需配置 {prefix}/{controller}/{action}, 例如：parent: "portal/User/index"。
 
-## 六、使用必读
-### 使用此插件请遵守法律法规，请勿在非法和违法应用中使用，产生的一切后果和法律责任均与作者无关！
+### 4.3 参数说明
+ 
+
+## 5、拦截器注解
+
+## 6、依赖注入注解
+
+## 7、代码贡献
+####  [Crastlin博客主页](https://learnku.com/blog/Crastlin) crastlin@163.com
+
+## 8、使用必读
+- ___使用此插件请遵守法律法规，请勿在非法和违法应用中使用，产生的一切后果和法律责任均与作者无关！___
