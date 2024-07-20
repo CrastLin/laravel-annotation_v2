@@ -163,7 +163,6 @@ class RouteAnnotation extends Annotation
         $std->methods = [];
         $std->path = '';
         $std->name = '';
-        $std->where = [];
         $std->pattern = '';
         $std->keys = [];
         $std->values = [];
@@ -499,13 +498,15 @@ class RouteAnnotation extends Annotation
         $name = str_replace('/', '.', $basePath);
         $name = $prefix ? $name : "{$module}.{$name}";
         $subRouteContent .= "->name('{$name}')";
-        $pattern = !empty($route->pattern) && $route->pattern instanceof Constraint ? $route->pattern : null;
+        $pattern = !empty($route->pattern) && $route->pattern instanceof Constraint ? $route->pattern : Constraint::MATCH;
         if ($pattern) {
             switch ($pattern) {
                 case Constraint::MATCH:
-                    if (empty($route->where))
-                        throw new AnnotationException("{$class}->{$route->action} #[RouteWhere] The parameter where cannot be empty");
-                    $subRouteContent .= "\r\n->where(" . var_export($route->where, true) . ")";
+                    if (isset($route->where)) {
+                        if (empty($route->where))
+                            throw new AnnotationException("{$class}->{$route->action} #[RouteWhere] The parameter where cannot be empty");
+                        $subRouteContent .= "\r\n->where(" . var_export($route->where, true) . ")";
+                    }
                     break;
                 case Constraint::IN:
                     if (empty($route->keys))
