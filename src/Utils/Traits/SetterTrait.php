@@ -6,7 +6,7 @@ trait SetterTrait
 {
     function setProperty(string $name, $value): void
     {
-        if (property_exists($this, $name))
+        if (!is_null($value) && property_exists($this, $name))
             $this->{$name} = $value;
     }
 }

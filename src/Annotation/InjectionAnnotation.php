@@ -202,7 +202,12 @@ class InjectionAnnotation
                     $attribute = $attrs[0] ?? null;
                 } else {
                     foreach ($target->getAttributes() as $attr) {
-                        if (in_array($attr->getName(), [Value::class, Env::class, Input::class, Inject::class, Autowired::class])) {
+                        $attrName = $attr->getName();
+                        if (in_array($attrName, [Value::class, Env::class, Input::class, Inject::class, Autowired::class])) {
+                            $attribute = $attr;
+                            break;
+                        }
+                        if (str_starts_with($attrName, __NAMESPACE__ . '\\Attributes\\Input\\')) {
                             $attribute = $attr;
                             break;
                         }
@@ -223,12 +228,15 @@ class InjectionAnnotation
                     $propertyType = $target->getType();
                     $typeof = $propertyType instanceof \ReflectionNamedType && !$propertyType->isBuiltin() ? $propertyType->getName() : null;
                 }
-                $attr = $attribute->newInstance();
+
                 $map = new \stdClass();
                 $map->target = $target->getName();
                 $map->annotation = $attribute->getName();
+                $attr = $attribute->newInstance();
                 $map->name = $attr->name ?? '';
                 $map->parameters = $attr->parameters ?? [];
+                if ($attribute->getName() == Input\All::class)
+                    $map->keys = $attr->keys ?? [];
                 $map->typeof = $typeof ?? 'mixed';
                 $map->qualifier = $qualifier ?: '';
                 $maps[$key][] = $map;
@@ -404,7 +412,28 @@ php;
                     $value = env("{$property->name}");
                     break;
                 case Input::class:
-                    $value = request("{$property->name}");
+                    $value = request()?->input($property->name);
+                    break;
+                case Input\All::class:
+                    $value = request()->all($property->keys ?? []);
+                    break;
+                case Input\Collect::class:
+                    $value = request()->collect($property->name ?? null);
+                    break;
+                case Input\Get::class:
+                    $value = request()->get($property->name);
+                    break;
+                case Input\Post::class:
+                    $value = request()->post($property->name);
+                    break;
+                case Input\Header::class:
+                    $value = request()->header($property->name);
+                    break;
+                case Input\Query::class:
+                    $value = request()->query($property->name);
+                    break;
+                case Input\Json::class:
+                    $value = request()->json($property->name);
                     break;
             }
             return $value ?? '';
