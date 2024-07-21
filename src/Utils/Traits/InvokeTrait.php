@@ -46,6 +46,10 @@ trait InvokeTrait
         return $this->result ?: [];
     }
 
+    function getResponse(): array
+    {
+        return ['code' => $this->resCode->value, 'msg' => $this->errText, 'data' => $this->result];
+    }
 
     static function newInstanceByParent(string $name = '', ...$params): static
     {

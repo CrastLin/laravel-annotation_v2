@@ -138,12 +138,16 @@ return [
      | Including all annotation configurations related to interception
      */
     'interceptor' => [
+        // Data of response field when intercepted
+        'response' => [
+            'code' => 'code',
+            'msg' => 'msg',
+            'data' => 'data',
+        ],
         // Distributed lock configuration
         'lock' => [
             // lock switch, on by default
             'case' => true,
-            // Data of response when intercepted
-            'response' => [],
             // Lock status validity period setting
             'expire' => 86400,
             // Configure the request token variable for SyncLockByToken

@@ -15,12 +15,13 @@ use Crastlin\LaravelAnnotation\Utils\TurnBack;
 class InterceptorAnnotation extends Annotation
 {
 
-    static function matchInterceptors(\ReflectionMethod $method, \stdClass $interceptor, \stdClass $map): void
+    static function matchInterceptors(\ReflectionMethod $method, ?\stdClass &$interceptor, \stdClass $map): void
     {
         $attributes = $method->getAttributes();
         $lock = new \stdClass();
         $methodName = $method->getName();
         $methodValidationList = [];
+        $interceptor = $interceptor ?: new \stdClass();
         foreach ($attributes as $attribute) {
             $name = $attribute->getName();
 
@@ -61,7 +62,7 @@ class InterceptorAnnotation extends Annotation
                 $annotation = $attribute->newInstance();
                 if ($attribute->getName() == Validation::class || $annotation instanceof Validation\ValidateBase) {
                     $validate = new \stdClass();
-                    self::matchAllValidation($validate, $annotation, $attribute, $method->getName());
+                    self::matchAllValidation($validate, $annotation, $attribute, $parameter->getName());
                     $parameterValidation[$parameterName][] = $validate;
                 }
             }
@@ -144,6 +145,8 @@ class InterceptorAnnotation extends Annotation
                 return TurnBack::intoResult(ResponseCode::PASSED, 'passed');
 
             $interceptor = $interceptorConfig[$action];
+            $interceptor = $interceptor ?: new \stdClass();
+            $interceptor->respose = $interceptorConfig['response'] ?? [];
         }
 
         $releaseLocker = null;
@@ -181,7 +184,7 @@ class InterceptorAnnotation extends Annotation
             $redis = RedisClient::singleton(!empty($redisConfig['db']) ? (int)$redisConfig['db'] : 0, $redisConfig)->getInstance();
 
             if (!$redis->set($lockerKey, 1, ['nx', 'ex' => $annotation->expire ?? (!empty($lockConfig['expire']) && is_numeric($lockConfig['expire']) ? $lockConfig['expire'] : 300)])) {
-                $response = !empty($annotation->response) ? $annotation->response : (!empty($lockConfig['response']) ? $lockConfig['response'] : ['code' => $annotation->code ?? 500, 'msg' => $annotation->msg ?? 'Request busy, please try again later']);
+                $response = !empty($annotation->response) ? $annotation->response : ['code' => $annotation->code ?? 500, 'msg' => $annotation->msg ?? 'Request busy, please try again later'];
                 return TurnBack::intoResult(ResponseCode::IS_LOCKED, 'is returned', ['code' => isset($response['code']) && ResponseCode::isMatched($response['code']) ? $response['code']->value : ResponseCode::IS_LOCKED->value, 'msg' => !empty($response['msg']) ? $response['msg'] : 'Request busy, please try again later']);
             }
             if (empty($annotation->once))

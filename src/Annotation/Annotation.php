@@ -103,7 +103,7 @@ abstract class Annotation implements Annotator
 
     static function handleInvokeAnnotation(string $class, \ReflectionMethod $method, ?array $data, ?array &$arguments = [], bool $onlyRunParameters = false, bool $isOnlyInjectMode = false): TurnBack
     {
-        $interceptorAnnotation = new \stdClass();
+        $interceptorAnnotation = null;
         $interceptor = new InterceptorAnnotation();
         $methodName = $method->getName();
         $action = "{$class}@{$methodName}";
@@ -138,7 +138,7 @@ abstract class Annotation implements Annotator
                     }
                     if (!$injectAnnotation)
                         continue;
-                    $arguments[$k] = Injection::takeByParameter($parameter, $injectAnnotation, $action);
+                    $arguments[$k] = $argument = Injection::takeByParameter($parameter, $injectAnnotation, $action);
                     break;
                 }
             }
