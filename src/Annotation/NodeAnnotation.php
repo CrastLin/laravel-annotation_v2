@@ -28,7 +28,7 @@ class NodeAnnotation extends Annotation
     {
         if ($this->reflectClass->isAbstract())
             return [];
-        $classAttributes = $this->reflectClass->getAttributes();
+        $classAttributes = $this->reflectClass->getAttributes(Tree::class) ?: $this->reflectClass->getAttributes(Node::class);
         $tree = new stdClass();
         $tree->module = $module = !empty($parameters[0]) ? $parameters[0] : 'Single';
         [$tree->controller, $tree->ct] = $this->getController();
@@ -43,12 +43,14 @@ class NodeAnnotation extends Annotation
         foreach ($methods as $method) {
             $node = new stdClass();
             $node->action = $method->getName();
-            if (str_starts_with($node->action, '__'))
+            if (str_starts_with($node->action, '_'))
                 continue;
-            $attributes = $method->getAttributes();
-            $this->matchAllAttribute($attributes, $node, $tree);
-            if (empty($node->name) && $tree->checkMode == NodeMode::STRICT_MODE)
+            $attributes = $method->getAttributes(Node::class);
+            if (!empty($attributes)) {
+                $this->matchAllAttribute($attributes, $node, $tree);
+            } elseif ($tree->checkMode == NodeMode::STRICT_MODE && $method->getDeclaringClass()->getName() == $this->reflectClass->getName())
                 throw new AnnotationException("{$tree->module}/{$tree->controller}->{$node->action} No node annotations or node names configured", 503);
+
             if (empty($node->ignore) && !empty($node->name))
                 $tree->nodeList[] = $node;
         }

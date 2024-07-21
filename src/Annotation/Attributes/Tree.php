@@ -39,7 +39,7 @@ class Tree
      * For detailed instructions, please refer to the enumeration class
      */
     public function __construct(
-        public string   $name,
+        public string   $name = '',
         public int      $sort = 0,
         public bool     $isMenuNode = true,
         public bool     $isAuthNode = false,
