@@ -1060,6 +1060,9 @@ use App\Service\UserService;
 namespace App\Service;
 
 use Crastlin\LaravelAnnotation\Extra\BaseService;
+/**
+ * @mixin App\Service\Impl\User
+ */
 interface UserService extends BaseService
 {
    function updateAvatar(string $avatar = ''): bool;
@@ -1162,7 +1165,7 @@ use App\Service\UserService;
     }
 }
 ```
-> Tips 使用接口类型注入只能使用 `Autowired`注解
+> Tips 使用接口类型注入只能使用 `Autowired`注解，且实现类必须标记`Service`注解，否则会被排除。如果非工厂模式，Service层可以不定义任何方法，只需在头部增加 `@mixin App\Service\Impl\User`Idea 则会自动映射方法提示
 
 ## 7、代码贡献
 
