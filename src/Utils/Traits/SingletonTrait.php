@@ -22,7 +22,7 @@ trait SingletonTrait
      * @param mixed $params
      * @return static
      */
-    static function singleton(string $name = '', ...$params): static
+    static function singletonByParent(string $name = '', ...$params): static
     {
         $baseNameSpace = explode('\\', static::class);
         array_pop($baseNameSpace);
@@ -50,6 +50,12 @@ trait SingletonTrait
         // auto inject all properties
         Injection::injectWithObject(self::$singleton[$key], $reflectClass);
         return self::$singleton[$key];
+    }
+
+
+    static function singleton(...$params): static
+    {
+        return static::singletonByParent('', $params);
     }
 
     /**

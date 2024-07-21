@@ -133,7 +133,7 @@ class BaseController extends \Illuminate\Routing\Controller
         try {
             if (empty($serviceClass) || empty($method))
                 return ['code' => ResponseCode::SERVICE_ERROR->value, 'msg' => 'service or method is not defined'];
-            $serviceInstance = BaseImplement::singleton($serviceClass);
+            $serviceInstance = BaseImplement::singletonByParent($serviceClass);
             $result = $serviceInstance->getResult();
             if (!$serviceInstance($method, ...$serviceParameters))
                 return ['code' => $serviceInstance->getResCode(), 'msg' => $serviceInstance->getError(), 'data' => $result];

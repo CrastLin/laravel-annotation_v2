@@ -226,6 +226,10 @@ class InjectionAnnotation
                 }
                 $typeof = null;
                 if ($key == 'properties') {
+                    if (!isset($maps['public_properties']))
+                        $maps['public_properties'] = [];
+                    if ($target->isPublic())
+                        $maps['public_properties'][] = $target->getName();
                     $propertyType = $target->getType();
                     $typeof = $propertyType instanceof \ReflectionNamedType && !$propertyType->isBuiltin() ? $propertyType->getName() : null;
                 }
@@ -537,21 +541,30 @@ php;
                 $propertyName = $property->target;
                 $value = $this->getInjectTypeofValue($class, $property);
                 $propertySetter = 'set' . ucfirst($propertyName);
-                switch (true) {
-                    // using setter action
-                    case method_exists($object, $propertySetter):
-                        $object->{$propertySetter}($value);
-                        break;
-                    // using setProperty action
-                    case $propertySetMethodType == 'setProperty':
-                        $object->setProperty($propertyName, $value);
-                        break;
-                    // using __set magic action
-                    case $propertySetMethodType == 'set':
-                        $object->{$propertyName} = $value;
-                        break;
-                    default:
-                        throw new \Exception("Class {$class} property::{$propertyName} dependency injection must be configured with non private or defined with methods __ set or setProperty");
+                if ($propertySetMethodType) {
+                    switch ($propertySetMethodType) {
+                        // using setProperty action
+                        case 'setProperty':
+                            $object->setProperty($propertyName, $value);
+                            break;
+                        // using __set magic action
+                        case 'set':
+                            $object->{$propertyName} = $value;
+                            break;
+                    }
+                } else {
+                    switch (true) {
+                        // when permission of property is public
+                        case !empty($propertiesCache['public_properties']) && in_array($propertiesCache['public_properties'], $propertyName):
+                            $object->{$propertyName} = $value;
+                            break;
+                        // using setter action
+                        case method_exists($object, $propertySetter):
+                            $object->{$propertySetter}($value);
+                            break;
+                        default:
+                            throw new \Exception("Class {$class} property::{$propertyName} dependency injection must be configured with non private or defined with methods __ set or setProperty");
+                    }
                 }
             }
         }

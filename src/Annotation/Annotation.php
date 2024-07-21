@@ -125,8 +125,9 @@ abstract class Annotation implements Annotator
             $name = $parameter->getName();
             // Parameter dependency injection
             $attributes = $parameter->getAttributes();
+            $defaultValue = $parameter->getDefaultValue();
             $argument = $arguments[$k] ?? null;
-            if (is_null($argument)) {
+            if (is_null($argument) || $argument == $defaultValue) {
                 $injectAnnotation = null;
                 foreach ($attributes as $attribute) {
                     $an = $attribute->getName();
