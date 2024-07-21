@@ -8,6 +8,7 @@ use Crastlin\LaravelAnnotation\Annotation\Attributes\Env;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Input;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Qualifier;
+use Crastlin\LaravelAnnotation\Annotation\Attributes\Service;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Value;
 use Crastlin\LaravelAnnotation\Utils\Sync;
 
@@ -275,10 +276,12 @@ class InjectionAnnotation
                 throw new AnnotationException("Qualifier Class {$property->qualifier} is not exists", 500);
 
             $ref = $this->exists($property->qualifier) ? $this->take($property->qualifier) : new \ReflectionClass($property->qualifier);
-            $implementClass = $property->qualifier;
-            $pathSplitList = explode('\\', $property->qualifier);
-            $implementClassName = array_pop($pathSplitList);
-            $implementClassFile = $ref->getFileName();
+            if ($ref->getAttributes(Service::class)) {
+                $implementClass = $property->qualifier;
+                $pathSplitList = explode('\\', $property->qualifier);
+                $implementClassName = array_pop($pathSplitList);
+                $implementClassFile = $ref->getFileName();
+            }
         } else {
             $path = Annotation::getAnnotationPath('proxies/implements', $config);
             $injectConfig = $config['inject'] ?? [];
@@ -307,7 +310,7 @@ class InjectionAnnotation
                 if (!class_exists($class))
                     continue;
                 $ref = $this->exists($class) ? $this->take($class) : new \ReflectionClass($class);
-                if ($ref->implementsInterface($interfaceClass)) {
+                if ($ref->implementsInterface($interfaceClass) && $ref->getAttributes(Service::class)) {
                     $implementClass = $class;
                     $implementClassName = $fileName;
                     $implementClassFile = $classFile;
