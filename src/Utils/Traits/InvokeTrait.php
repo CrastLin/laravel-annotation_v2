@@ -12,10 +12,12 @@ use ReflectionClass;
 
 trait InvokeTrait
 {
+    use SetterTrait;
+
     protected ?\ReflectionClass $reflectClass;
 
     #[Inject('params')]
-    protected array $data;
+    protected array $data = [];
 
     protected ResponseCode $resCode = ResponseCode::PARAMETER_ERROR;
 
@@ -83,11 +85,5 @@ trait InvokeTrait
             return false;
         }
         return call_user_func([$this, $method], ...$arguments);
-    }
-
-    // proxy setter
-    function setProperty(string $name, mixed $value): void
-    {
-        $this->{$name} = $value;
     }
 }

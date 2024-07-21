@@ -447,7 +447,6 @@ php;
         elseif (!empty($property->name) && str_contains($property->name, '\\'))
             $injectClass = $property->name;
 
-        $ref = null;
         if (!empty($injectClass) && (class_exists($injectClass) || interface_exists($injectClass))) {
             $bindName = $injectClass;
             if (!empty($property->qualifier))
@@ -475,7 +474,18 @@ php;
             }
         } else {
             $bindName = !empty($property->name) ? $property->name : $property->target;
-            $value = $this->exists($bindName) ? $this->take($bindName) : null;
+            if (isset($property->defaultValue))
+                $default = isset($property->defaultValue);
+            else {
+                $default = match ($property->typeof) {
+                    "string" => '',
+                    "int", "float" => 0,
+                    "array" => [],
+                    "bool" => false,
+                    default => null,
+                };
+            }
+            $value = $this->exists($bindName) ? $this->take($bindName) : $default;
         }
 
         if ($bindInjectMap) {
@@ -496,6 +506,7 @@ php;
         $std->name = !empty($annotation->name) ? $annotation->name : '';
         $std->parameters = !empty($annotation->parameters) ? $annotation->parameters : [];
         $std->typeof = $parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin() ? $parameterType->getName() : null;
+        $std->defaultValue = $parameter->getDefaultValue();
         return $this->getInjectTypeofValue($action, $std, false);
     }
 
@@ -513,6 +524,8 @@ php;
             $reflect = new \ReflectionClass($class);
             $this->bind("reflect.{$class}", $reflect);
         }
+        if ($reflect->isAnonymous())
+            throw new AnnotationException("Anonymous class: {$reflect->getName()} currently do not support dependency injection");
         $object = $object ?: $reflect->newInstance();
         $propertySetMethodType = method_exists($object, 'setProperty') ? 'setProperty' : (method_exists($object, '__set') ? 'set' : '');
 
