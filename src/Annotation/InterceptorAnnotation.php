@@ -229,7 +229,7 @@ class InterceptorAnnotation extends Annotation
                 // general validator annotation
                 if (!empty($validator->rules)) {
                     foreach ($validator->rules as $field => $rule) {
-                        $ruleList = !empty($rule) ? explode('|', $rule) : [];
+                        $ruleList = !empty($rule) ? (is_array($rule) ? $rule : explode('|', $rule)) : [];
                         if (!empty($rules) && array_key_exists($field, $rules)) {
                             array_push($rules[$field], ...$ruleList);
                         } else {

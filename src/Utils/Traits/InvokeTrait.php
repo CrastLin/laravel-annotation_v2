@@ -5,7 +5,7 @@ namespace Crastlin\LaravelAnnotation\Utils\Traits;
 
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
 use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
-use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
+use Crastlin\LaravelAnnotation\Annotation\Attributes\Input\All;
 use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 use Crastlin\LaravelAnnotation\Extra\ResponseCodeEnum;
 use Crastlin\LaravelAnnotation\Facades\Injection;
@@ -17,7 +17,7 @@ trait InvokeTrait
 
     protected ?\ReflectionClass $reflectClass;
 
-    #[Inject('params')]
+    #[All]
     protected array $data = [];
 
     protected ResponseCodeEnum $resCode = ResponseCode::PARAMETER_ERROR;

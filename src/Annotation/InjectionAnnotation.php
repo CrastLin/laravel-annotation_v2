@@ -489,7 +489,11 @@ php;
                     default => null,
                 };
             }
-            $value = $this->exists($bindName) ? $this->take($bindName) : $default;
+            if ($this->exists($bindName)) {
+                $value = $this->take($bindName);
+            } else {
+                $value = request()->input($bindName, $default);
+            }
         }
 
         if ($bindInjectMap) {
