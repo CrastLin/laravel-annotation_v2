@@ -7,6 +7,7 @@ use Crastlin\LaravelAnnotation\Annotation\Annotation;
 use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
 use Crastlin\LaravelAnnotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\ResponseCodeEnum;
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use ReflectionClass;
 
@@ -19,7 +20,7 @@ trait InvokeTrait
     #[Inject('params')]
     protected array $data = [];
 
-    protected ResponseCode $resCode = ResponseCode::PARAMETER_ERROR;
+    protected ResponseCodeEnum $resCode = ResponseCode::PARAMETER_ERROR;
 
     protected string $errText = '', $notice = '';
 

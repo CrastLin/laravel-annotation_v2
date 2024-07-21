@@ -5,5 +5,5 @@ namespace Crastlin\LaravelAnnotation\Annotation\Attributes;
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class SyncLockByToken extends SyncLock
 {
-    public string $suffix = '{header.token}';
+    public string $suffix = '';
 }

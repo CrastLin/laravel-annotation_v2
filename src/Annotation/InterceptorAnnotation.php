@@ -29,6 +29,7 @@ class InterceptorAnnotation extends Annotation
                 // match sync lock annotation
                 case in_array($name, [SyncLock::class, SyncLockByToken::class]):
                     $lock->name = !empty($annotation->name) ? $annotation->name : self::humpToUnderline("{$map->module}_{$map->controller}_{$methodName}");
+                    $lock->annotation = $name;
                     $lock->expire = $annotation->expire ?? 300;
                     $lock->code = $annotation->code ?? ResponseCode::IS_LOCKED;
                     $lock->msg = $annotation->msg ?? 'The method is locking...';
@@ -151,10 +152,14 @@ class InterceptorAnnotation extends Annotation
             $annotation = $interceptor->locker;
             $annotation->prefix = $annotation->prefix ? "{$annotation->prefix}:" : '';
             $lockerKey = "{$annotation->prefix}{$annotation->name}";
+
+            if (!empty($interceptor->locker->annotation) && $interceptor->locker->annotation == SyncLockByToken::class && !empty($lockConfig['token']))
+                $annotation->suffix = $lockConfig['token'];
+
             if (!empty($annotation->suffix) || !empty($annotation->suffixes)) {
                 $annotation->suffixes = $annotation->suffixes ?? [];
                 if (!empty($annotation->suffix))
-                    $annotation->suffixeses[] = $annotation->suffixes;
+                    $annotation->suffixes[] = $annotation->suffix;
                 $suffixKey = '';
                 foreach ($annotation->suffixes as $suffix):
                     if (preg_match('~^\{([\w\.]+)\}$~', $suffix, $matches) && !empty($matches[1])) {

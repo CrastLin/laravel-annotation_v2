@@ -4,7 +4,7 @@ namespace Crastlin\LaravelAnnotation\Extra;
 
 use Crastlin\LaravelAnnotation\Enum\EnumMethod;
 
-enum ResponseCode: int
+enum ResponseCode: int implements ResponseCodeEnum
 {
     use EnumMethod;
 

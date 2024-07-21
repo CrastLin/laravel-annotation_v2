@@ -146,6 +146,8 @@ return [
             'response' => [],
             // Lock status validity period setting
             'expire' => 86400,
+            // Configure the request token variable for SyncLockByToken
+            'token' => '{header.token}',
         ],
         // Parameter input verifier configuration
         'validate' => [

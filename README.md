@@ -4,14 +4,14 @@
 > 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh) 原生支持了，这有利于我们创建更快更好用的注解工具利器，为我们的编码工作带来更高的效率。之前开发的 [PHP7.x + Laravel5.8.x 注解插件](https://github.com/CrastLin/laravel-annotation) 在leanKu上受到不少朋友的关注，但大部分朋友已经全面切到PHP8+，希望能发布PHP8系列注解插件，虽然现在很多PHPer都转战Golang了，但PHP在我心中依旧占一席之地！所以我依然希望能为PHP开源尽点微薄之力，希望它越来越好，重回巅峰时刻。
 
 - laravel-annotation_v2已实现的模块有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造函数（Constructor）、方法（Method）、参数（Parameter），可支持Laravel
-  config配置注入和Env环境配置注入。
+  config配置注入和Env环境配置注入。使用框架版本：Laravel 9.x ([LeanKu Laravel9.x中文文档](https://learnku.com/docs/laravel/9.x))
 
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation 传送 ](https://github.com/CrastLin/laravel-annotation)
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation使用demo](https://github.com/CrastLin/laravel-annotation-demo)
 
-## 1、安装注解依赖
+## 1、安装
 
-#### 由于依赖包使用了[PHP8.1枚举](https://www.php.net/releases/8.1/en.php)，因此PHP版本要求 >= 8.1，在laravel根目录下，执行以下命令
+#### 由于使用了[PHP8.1枚举](https://www.php.net/releases/8.1/en.php)，因此PHP版本要求 >= 8.1，在laravel根目录下，执行以下命令
 
 ````shell
 composer require crastlin/laravel-annotation_v2:v1.0.6-alpha
@@ -32,7 +32,7 @@ sudo -u www php artisan annotation:config
 * <b style="color:#f60">
   注意：根据实现的功能的需要，程序会生成缓存文件，以便更快的运行。文件根目录在config/annotation.php中的annotation_path项，默认目录在根目录的data目录，需要创建该目录，并且授权读写权限</b>
 
-## 3、路由模块注解
+## 3、路由模块
 
 ### 3.1 路由定义
 
@@ -139,9 +139,7 @@ Route::controller(App\Http\Controllers\Portal\IndexController::class)->group(fun
     - 定义路由条件，可定义验证请求的路由参数，例如：path定义了，/index/{id}，可配置where: ['id' => '[0-9]+'] ，更多条件路由配置可使用
       Annotation/Attributes/Route 目录下的条件（包含Where）路由注解
 
-> 更新的路由注解，请查看Router接口的实现类，包括常用的PostMapping / GetMapping / AnyMapping等
-
-- 路由更多的使用请参考[Laravel9中文文档](https://learnku.com/docs/laravel/9.x/routing/12209#296672)
+> 更多的路由注解，请查看Router接口的实现类，包括常用的PostMapping / GetMapping / AnyMapping等
 
 ### 3.2 路由分组
 
@@ -215,6 +213,31 @@ Route::prefix('api')
   Route::post('index', 'home')->name('api.home');
   Route::post('article', 'news')->name('api.news');
  });
+````
+> 中间件还可使用 Middleware 注解绑定，中间件名称可以直接指定中间件文件地址，多个中间件可以定义成数组，例如
+````php
+ #[Group("api")]
+ #[Middleware([\App\Http\Middleware\Check::class, \App\Http\Middleware\ParamFilter::class])]
+ #[Controller]
+ class IndexController extends Controller
+{
+     #[PostMapping("index")]
+     function home()
+     {
+        // todo
+     }
+     
+     #[PostMapping("article")]
+     function news()
+     {
+        // todo
+     }
+}
+
+// 在App\Http\Kernel中的属性：$routeMiddleware 配置 中间件映射
+protected $routeMiddleware = [
+  'checker' => \App\Http\Middleware\Checker::class,
+];
 ````
 
 - 绑定域名可配置domain 或者使用Domain注解
@@ -323,7 +346,7 @@ sudo -u www php artisan annotation:route
 
 > Tips: 建议在生产环境配置hook，每次发版完成后，自动更新路由
 
-## 4、菜单权限注解
+## 4、菜单权限
 
 >
 在开发后台时，经常会需要使用到功能菜单和角色权限分配的功能，使用注解的好处在于，开发时定义好菜单树和权限节点信息，无需在数据库繁琐添加，只需要使用生成命令，快速将注解的菜单树和权限节点保存到数据库，方便环境切换和移植，为开发者整理菜单节约宝贵的时间。
@@ -538,7 +561,7 @@ class IndexController
 ````
 - 以上两个方法对应生成节点名称： 长颈鹿主页，长颈鹿观看时间，老虎主页，老虎观看时间
 
-## 5、拦截器注解
+## 5、拦截器
 ### 5.1 请求并发锁
 > 经常会遇到这样的场景，当同一个请求（公共级 / 用户级 / 项目级等）需要限制并发，可以使用SyncLock，注解控制器方法，达到限制并发的效果，SyncLock 采用的是 redis 的 set 实现方式，redis配置默认使用的Laravel env配置项，可自行在生成的 cpnfig/annotation.php 中配置。
 #### 5.1.1 使用 SyncLock 注解
@@ -583,10 +606,42 @@ class IndexController
 - 锁名称，不配置时，默认为当前{模块名} _ {控制器名} _ {方法名}
 
 
-- ***code***
-- 锁定被阻断访问时返回的响应code码
+- ***once***
+- 定义限制在锁有效期内只能请求一次，请求完不会自动释放锁
 
-## 6、依赖注入注解
+
+- ***code***
+- 锁定被阻断访问时返回的响应code码，在 ***Extra/ResponseCode*** 枚举中已定义了常用的代码，可自定义枚举类并实现接口 ***Extra/ResponseCodeEnum*** 。
+
+
+- ***msg***
+- 锁定被阻断访问时返回的响应错误信息。
+
+
+- ***response***
+- 自定义响应数据格式，数组类型，以json格式响应。
+
+
+- ***prefix***
+- 自定义锁前置key
+
+
+- ***suffix***
+- 自定义锁名后缀，可通过花括号取请求变量，例如使用 post请求的id 为后缀，则使用 {post.id}，已支持的请求类型有：input / get / post / header / query / date
+
+
+- ***suffixes***
+- 组合后缀定义，可配置多个后缀名或请求变量。
+
+> 如果需要按登录身份进行并发限制，则可以使用 SyncLockByToken suffix参数可通过参数或配置文件 config/annotation.php 中的interceptor -> lock -> token 配置，默认配置为： {header.token} 
+
+
+### 5.2 验证器
+
+
+## 6、依赖注入
+
+### 
 
 ## 7、代码贡献
 

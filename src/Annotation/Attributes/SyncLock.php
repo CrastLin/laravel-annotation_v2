@@ -3,6 +3,7 @@
 namespace Crastlin\LaravelAnnotation\Annotation\Attributes;
 
 use Crastlin\LaravelAnnotation\Extra\ResponseCode;
+use Crastlin\LaravelAnnotation\Extra\ResponseCodeEnum;
 
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class SyncLock
@@ -20,7 +21,7 @@ class SyncLock
      * @param bool $once
      * only entry once when it expired
      *
-     * @param ResponseCode $code
+     * @param ResponseCodeEnum $code
      * when gets locking status, then set response code
      *
      * @param string $msg
@@ -49,7 +50,7 @@ class SyncLock
     public function __construct(
         public int          $expire = 300,
         public string       $name = '',
-        public ResponseCode $code = ResponseCode::IS_LOCKED,
+        public ResponseCodeEnum $code = ResponseCode::IS_LOCKED,
         public string       $msg = 'The request is currently working, please try again later',
         public array        $response = [],
         public bool         $once = false,
