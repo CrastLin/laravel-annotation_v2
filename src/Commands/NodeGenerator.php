@@ -32,7 +32,7 @@ class NodeGenerator extends Command
     {
         $this->info("Start scanning all node data for the construction target...");
         Annotation::scanAnnotation([NodeAnnotation::class,], [], $this);
-        $this->info("All nodes generated completed.");
+        $this->info("All nodes have been generated.");
     }
 
 }

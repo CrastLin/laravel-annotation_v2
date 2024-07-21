@@ -80,7 +80,7 @@ class NodeAnnotation extends Annotation
                 case Tree::class:
                     if ($annotation->isMenuNode)
                         $node->virtualNode = !empty($annotation->virtualNode) ? $annotation->virtualNode : 'defaultPage';
-                    $node->name = $annotation->name ?? '';
+                    $node->name = !empty($annotation->name) ? $annotation->name : $node->ct;
                     $node->sort = $annotation->sort ?? 0;
                     $node->preNamedSubMethods = !empty($annotation->preNamedSubMethods) ? explode(',', $annotation->preNamedSubMethods) : [];
                     $node->checkMode = $annotation->checkMode;
@@ -91,7 +91,7 @@ class NodeAnnotation extends Annotation
                         return;
                     if (!$tree && $annotation->isMenuNode)
                         $node->virtualNode = 'defaultPage';
-                    $node->name = $annotation->name ?? '';
+                    $node->name = !empty($annotation->name) ? $annotation->name : $node->action;
                     if (!empty($tree->preNamedSubMethods) && in_array($node->action, $tree->preNamedSubMethods))
                         $node->name = "{$tree->name}{$node->name}";
                     $node->sort = $annotation->sort ?? 0;
@@ -145,7 +145,7 @@ class NodeAnnotation extends Annotation
                 foreach ($tree->nodeList as $node) {
                     try {
                         GeneratorStoreTable::store($node, $module, $tree->ct);
-                        echo "+++ [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action}+++" . PHP_EOL;
+                        echo "+++ [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} +++" . PHP_EOL;
                     } catch (\Throwable $exception) {
                         if ($exception->getCode() < 600)
                             throw $exception;

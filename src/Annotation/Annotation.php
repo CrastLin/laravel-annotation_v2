@@ -82,7 +82,7 @@ abstract class Annotation implements Annotator
     {
         $ctClass = explode('\\', $this->reflectClass->getName());
         $controller = array_pop($ctClass);
-        $ct = $controller == 'Controller' ? $controller : (str_contains($controller, $leftSuffix) ? substr($controller, 0, -strlen($leftSuffix)) : $controller);
+        $ct = $controller == 'Controller' ? $controller : (str_ends_with($controller, $leftSuffix) ? substr($controller, 0, -strlen($leftSuffix)) : $controller);
         return [$controller, $ct];
     }
 
