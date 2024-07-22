@@ -3,20 +3,20 @@
 > 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh) 原生支持了，这有利于我们创建更快更好用的注解工具利器，为我们的编码工作带来更高的效率。之前开发的 [PHP7.x + Laravel5.8.x 注解插件](https://github.com/CrastLin/laravel-annotation) 在leanKu上受到不少朋友的关注，但大部分朋友已经全面切到PHP8+，希望能发布PHP8系列注解插件，虽然现在很多PHPer都转战Golang了，但PHP在我心中依旧占一席之地！所以我依然希望能为PHP开源尽点微薄之力，希望它越来越好，重回巅峰时刻。
 
 - laravel-annotation_v2已实现的模块有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造方法（Constructor）、Setter方法（Method）、参数（Parameter），可支持Laravel
-  config配置注入和Env环境配置注入。使用框架版本：Laravel >= 9.x ([LeanKu Laravel9.x中文文档](https://learnku.com/docs/laravel/9.x))
+  config配置注入和Env环境配置注入。
 
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation 传送 ](https://github.com/CrastLin/laravel-annotation)
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation使用demo](https://github.com/CrastLin/laravel-annotation-demo)
 
-## 1、安装
+## 1、环境和安装
+### 1.1. 环境要求
+- 由于使用了[PHP8.1和枚举特性](https://www.php.net/releases/8.1/en.php)，因此PHP版本最低要求 >= 8.1，框架版本使用的是 Laravel 9.x ([LeanKu Laravel9.x中文文档](https://learnku.com/docs/laravel/9.x))
 
-#### 由于使用了[PHP8.1枚举](https://www.php.net/releases/8.1/en.php)，因此PHP版本要求 >= 8.1，在laravel根目录下，执行以下命令
-
+### 1.2. 安装依赖包
 ````shell
 composer require crastlin/laravel-annotation_v2:v1.0.7-alpha
 ```` 
 > Tips: 也可以在composer.json的 require内定义：`"crastlin/laravel-annotation_v2": "^v1.0.7-alpha"`
-
 
 
 ## 2、初始化配置文件
@@ -1081,6 +1081,10 @@ use Crastlin\LaravelAnnotation\Extra\BaseImplement;
 #[Service]
 class User extends BaseImplement implements UserService
 {
+
+    #[Inject("model.user")]
+    protected ?User $user;
+
     function updateAvatar(#[Autowired] string $avatar = ''): bool
     {
       var_dump($this->user);
@@ -1165,7 +1169,7 @@ use App\Service\UserService;
     }
 }
 ```
-> Tips 使用接口类型注入只能使用 `Autowired`注解，且实现类必须标记`Service`注解，否则会被排除。如果非工厂模式，Service层可以不定义任何方法，只需在头部增加 `@mixin App\Service\Impl\User`Idea 则会自动映射方法提示
+> Tips 使用接口类型注入只能使用 `Autowired`注解，且实现类必须标记`Service`注解，否则会被排除。使用`Qualifier`指定实现类可以上类名。如果非工厂模式，Service层可以不定义任何方法，只需在头部增加 `@mixin App\Service\Impl\User` 则Idea会自动映射方法提示
 
 ## 7、代码贡献
 
