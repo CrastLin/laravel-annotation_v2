@@ -21,7 +21,7 @@ composer require crastlin/laravel-annotation_v2:v1.0.7-alpha
 
 ## 2、初始化配置文件
 
-#### 输入以下命令创建注解配置: config/annotation.php
+- 输入以下命令创建注解配置: config/annotation.php
 
 ````shell
 sudo -u www php artisan annotation:config
@@ -342,8 +342,7 @@ sudo -u www php artisan annotation:route
 
 ## 4、菜单权限
 
->
-在开发后台时，经常会需要使用到功能菜单和角色权限分配的功能，使用注解的好处在于，开发时定义好菜单树和权限节点信息，无需在数据库繁琐添加，只需要使用生成命令，快速将注解的菜单树和权限节点保存到数据库，方便环境切换和移植，为开发者整理菜单节约宝贵的时间。
+> 在开发后台时，经常会需要使用到功能菜单和角色权限分配的功能，使用注解的好处在于，开发时定义好菜单树和权限节点信息，无需在数据库繁琐添加，只需要使用生成命令，快速将注解的菜单树和权限节点保存到数据库，方便环境切换和移植，为开发者整理菜单节约宝贵的时间。
 
 ### 4.1 配置第一个节点
 
@@ -790,7 +789,8 @@ class IndexController extends \Illuminate\Routing\Controller
 }
 ```
 
-#### 5.2.4 使用独立验证器注解，注解类位于`Crastlin\LaravelAnnotation\Attributes\Validation`目录下
+#### 5.2.4 使用独立验证器注解
+- 注解类位于`Crastlin\LaravelAnnotation\Attributes\Validation`目录下
 ```php
 namespace App\Http\Controllers\Portal;
 
@@ -1169,7 +1169,7 @@ use App\Service\UserService;
     }
 }
 ```
-> Tips 使用接口类型注入只能使用 `Autowired`注解，且实现类必须标记`Service`注解，否则会被排除。使用`Qualifier`指定实现类可以上类名。如果非工厂模式，Service层可以不定义任何方法，只需在头部增加 `@mixin App\Service\Impl\User` 则Idea会自动映射方法提示
+> Tips 使用接口类型注入只能使用 `Autowired`注解，且实现类必须标记`Service`注解，否则会被排除。使用`Qualifier`指定实现类可以是类名或类命名空间地址。如果非工厂模式，Service层可以不定义任何方法，只需在头部增加 `@mixin App\Service\Impl\User` 则Idea会自动映射方法提示
 
 ## 7、代码贡献
 
