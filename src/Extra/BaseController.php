@@ -122,25 +122,40 @@ class BaseController extends \Illuminate\Routing\Controller
 
     /**
      * 调用Service层能用方法，实现方法、参数注解
-     * @param string $serviceClass service类名，例如：TaskService::class
+     * @param string|object $serviceClass service类名，例如：TaskService::class，或者是接口注入对象
      * @param string $method 调用的Service方法名
      * @param array $serviceParameters 方法参数，按参数定义的顺序
      * @param array $anotherParameters 需要合并到响应的数据
      * @return array
      */
-    protected function callService(string $serviceClass, string $method, array $serviceParameters = [], array $anotherParameters = []): array
+    protected function callService(string|object $serviceClass, string $method, array $serviceParameters = [], array $anotherParameters = []): array
     {
         try {
             if (empty($serviceClass) || empty($method))
                 return ['code' => ResponseCode::SERVICE_ERROR->value, 'msg' => 'service or method is not defined'];
+            // When the service is an interface injection instance
+            if (is_object($serviceClass)) {
+                if (!$serviceClass->{$method}(...$serviceParameters)) {
+                    $result = $serviceClass->getResult();
+                    return ['code' => $serviceClass->getResCode(), 'msg' => $serviceClass->getError(), 'data' => $result];
+                }
+                $result = $serviceClass->getResult();
+                $result = !empty($anotherParameters) ? array_merge($result, $anotherParameters) : $result;
+                return [
+                    'code' => $serviceClass->getResCode(),
+                    'msg' => $serviceClass->getNotice(),
+                    'data' => $result,
+                ];
+            }
+            // When the service is a service implementation class address
             $serviceInstance = BaseImplement::singletonByParent($serviceClass);
-            $result = $serviceInstance->getResult();
             if (!$serviceInstance($method, ...$serviceParameters))
-                return ['code' => $serviceInstance->getResCode(), 'msg' => $serviceInstance->getError(), 'data' => $result];
+                return ['code' => $serviceInstance->getResCode(), 'msg' => $serviceInstance->getError(), 'data' => $serviceInstance->getResult()];
+            $result = $serviceInstance->getResult();
             $result = !empty($anotherParameters) ? array_merge($result, $anotherParameters) : $result;
             return [
                 'code' => $serviceInstance->getResCode(),
-                'msg' => 'success',
+                'msg' => $serviceInstance->getNotice(),
                 'data' => $result,
             ];
         } catch (Throwable $exception) {

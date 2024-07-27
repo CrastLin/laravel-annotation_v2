@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Crastlin\LaravelAnnotation\Annotation\Attributes;
+namespace Crastlin\LaravelAnnotation\Extra;
 
 /**
  * The method of creating a resource routing controller implementation

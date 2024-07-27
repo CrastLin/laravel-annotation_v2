@@ -275,11 +275,12 @@ class InjectionAnnotation
         $implementClassFile = '';
         $config = [];
         $path = '';
+        $ref = null;
         if (!empty($property->qualifier) && str_contains($property->qualifier, '\\')) {
             if (!class_exists($property->qualifier))
                 throw new AnnotationException("Qualifier Class {$property->qualifier} is not exists", 500);
 
-            $ref = $this->exists($property->qualifier) ? $this->take($property->qualifier) : new \ReflectionClass($property->qualifier);
+            $ref = new \ReflectionClass($property->qualifier);
             if ($ref->getAttributes(Service::class)) {
                 $implementClass = $property->qualifier;
                 $pathSplitList = explode('\\', $property->qualifier);
@@ -337,6 +338,11 @@ class InjectionAnnotation
         if ($hasFile)
             @unlink($proxyFile);
 
+        // Get constructor line parameter injection
+        $implementInjectParams = [];
+        if ($constructor = $ref->getConstructor())
+            Annotation::handleInvokeAnnotation($implementClass, $constructor, [], $implementInjectParams, true, true);
+
         // make a proxy class extend implement file
         $methods = $reflectionClass->getMethods();
         $methodContent = '';
@@ -369,6 +375,7 @@ class InjectionAnnotation
         $thisImplementInstance = '$this->implementInstance';
         $method = '$method';
         $arguments = '$arguments';
+        $implementInjectParamsVars = var_export($implementInjectParams, true);
         $proxyFileContent = <<<php
 <?php
 use Crastlin\LaravelAnnotation\Facades\Injection;
@@ -383,7 +390,10 @@ protected function getInstance():\\{$implementClass}
 {
 if(!empty($thisImplementInstance))
 return $thisImplementInstance;
-$thisImplementInstance = new \\{$implementClass}();
+// inject constructor
+
+$thisImplementInstance = new \\{$implementClass}(...$implementInjectParamsVars);
+
 Injection::injectWithObject($thisImplementInstance);
 return $thisImplementInstance;
 }
