@@ -8,17 +8,15 @@ use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use Crastlin\LaravelAnnotation\Utils\Traits\SetterTrait;
 use Crastlin\LaravelAnnotation\Utils\Traits\SysTrait;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Routing\Controller;
 use Throwable;
 
-class BaseController extends \Illuminate\Routing\Controller
+class BaseController extends Controller
 {
-    use AuthorizesRequests, DispatchesJobs, ValidatesRequests, SysTrait, SetterTrait;
+    use SysTrait, SetterTrait;
 
     protected Request $request;
 
@@ -112,6 +110,7 @@ class BaseController extends \Illuminate\Routing\Controller
                 throw new \Exception("Class {$class}::{$method} Cannot be accessed");
             Injection::injectWithObject($this, $reflectClass);
 
+            $parameters = array_values($parameters);
             $turnBack = Annotation::handleInvokeAnnotation($class, $ref, [], $parameters, true);
             if ($turnBack->code != ResponseCode::SUCCESS)
                 return $turnBack->toArray(['message' => 'msg']);
