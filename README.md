@@ -281,7 +281,7 @@ return [
 ### 3.3 资源路由
 
 > 资源路由（Restful Api）是常用的接口实现方式，其以固定的请求方式和路由参数组合标准，可快速注册路由，可以使用注解：`ResourceMapping` 和
- `ApiResourceMapping` 生成一组资源路由，实现接口：`Crastlin\LaravelAnnotation\Annotation\Attributes\ResourceInterface`，快速生成对应的方法
+ `ApiResourceMapping` 生成一组资源路由，实现接口：`Crastlin\LaravelAnnotation\Extra\ResourceInterface`，快速生成对应的方法
 
 - 使用以下注解创建一个资源路由
 
