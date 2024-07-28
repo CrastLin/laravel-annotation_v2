@@ -33,11 +33,11 @@ class RouteAnnotation extends Annotation
     {
         if (is_null($mapRecords)) {
             $mapFile = "{$mapBasePath}/map.php";
-            $mapRecords = is_file($mapFile) ? require_once $mapFile : [];
+            $mapRecords = is_file($mapFile) ? require $mapFile : [];
             if (empty($mapRecords))
                 return false;
             $cacheFile = "{$mapBasePath}/cache.php";
-            $cache = is_file($cacheFile) ? require_once $cacheFile : [];
+            $cache = is_file($cacheFile) ? require $cacheFile : [];
             $prefixes = $cache['prefixes'] ?? [];
             $resources = $cache['resources'] ?? [];
         }

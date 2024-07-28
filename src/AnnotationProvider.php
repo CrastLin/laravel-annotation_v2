@@ -77,11 +77,14 @@ class AnnotationProvider extends ServiceProvider
      */
     protected function runBuildRouteWithNode(): void
     {
+        $path = base_path('bootstrap/cache');
+        if (file_exists("{$path}/routes.php") || file_exists("{$path}/routes-v7.php"))
+            return;
         $config = config('annotation');
         $filePath = !empty($config['annotation_path']) ? rtrim($config['annotation_path'], '/') . '/' : 'data/';
         $routeBasePath = base_path($filePath . '/routes');
         $cacheFile = $routeBasePath . '/cache.php';
-        $cache = file_exists($cacheFile) ? require_once $cacheFile : [];
+        $cache = file_exists($cacheFile) ? require $cacheFile : [];
         $isSingle = !empty($config['route']['is_single_mode']);
         $namespace = $config['route']['namespace'] ?? 'App\Http\Controllers';
         $path = Request::capture()->path();
