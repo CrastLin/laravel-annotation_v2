@@ -374,11 +374,6 @@ class InjectionAnnotation
         if ($hasFile)
             @unlink($proxyFile);
 
-        // Get constructor line parameter injection
-        $implementInjectParams = [];
-        if ($constructor = $ref->getConstructor())
-            Annotation::handleInvokeAnnotation($implementClass, $constructor, [], $implementInjectParams, true, true);
-
         // make a proxy class extend implement file
         $methods = $reflectionClass->getMethods();
         $methodContent = '';
@@ -408,29 +403,32 @@ class InjectionAnnotation
         $implementClassVar = '$implementClass';
         $thisImplementClassVar = '$this->implementClass';
         $implementInstanceVar = '$implementInstance';
+        $reflectClassVar = '$reflectClass';
         $thisImplementInstance = '$this->implementInstance';
         $method = '$method';
         $arguments = '$arguments';
-        $implementInjectParamsVars = var_export($implementInjectParams, true);
         $proxyFileContent = <<<php
 <?php
 use Crastlin\LaravelAnnotation\Facades\Injection;
+use Crastlin\LaravelAnnotation\Annotation\Annotation;
  return new class implements \\{$interfaceClass} {
-protected string {$implementClassVar};
+protected string {$implementClassVar} = '{$implementClass}';
 protected \\{$implementClass} {$implementInstanceVar};
-function setImplementClass(string {$implementClassVar}):void
-{
-{$thisImplementClassVar} = {$implementClassVar};
-}
+protected ?\\ReflectionClass {$reflectClassVar} = null;
+
 protected function getInstance():\\{$implementClass}
 {
 if(!empty($thisImplementInstance))
 return $thisImplementInstance;
 // inject constructor
+// Get constructor line parameter injection
+        \$implementInjectParams = [];
+        \$this->reflectClass = \$this->reflectClass ?: new \ReflectionClass(\$this->implementClass);
+        if (\$constructor = \$this->reflectClass->getConstructor())
+           Annotation::handleInvokeAnnotation(\$this->implementClass, \$constructor, [], \$implementInjectParams, true, true);
+$thisImplementInstance = new \\{$implementClass}(...\$implementInjectParams);
 
-$thisImplementInstance = new \\{$implementClass}(...$implementInjectParamsVars);
-
-Injection::injectWithObject($thisImplementInstance);
+Injection::injectWithObject($thisImplementInstance, \$this->reflectClass);
 return $thisImplementInstance;
 }
 {$methodContent}
