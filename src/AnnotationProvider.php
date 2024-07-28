@@ -82,7 +82,7 @@ class AnnotationProvider extends ServiceProvider
             return;
         $config = config('annotation');
         $filePath = !empty($config['annotation_path']) ? rtrim($config['annotation_path'], '/') . '/' : 'data/';
-        $routeBasePath = base_path($filePath . '/routes');
+        $routeBasePath = base_path($filePath . 'routes');
         $cacheFile = $routeBasePath . '/cache.php';
         $cache = file_exists($cacheFile) ? require $cacheFile : [];
         $isSingle = !empty($config['route']['is_single_mode']);
