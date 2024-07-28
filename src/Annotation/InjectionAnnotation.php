@@ -288,46 +288,82 @@ class InjectionAnnotation
                 $implementClassFile = $ref->getFileName();
             }
         } else {
-            $path = Annotation::getAnnotationPath('proxies/implements', $config);
-            $injectConfig = $config['inject'] ?? [];
-            $scanImplPath = $injectConfig['impl_path'] ?? 'Impl';
-            $is = explode('\\', $interfaceClass);
-            array_pop($is);
-            $namespace = join('\\', $is);
+            $path = Annotation::getAnnotationPath('proxies', $config);
+            $proxyMapFile = "{$path}/map.php";
+            $implementCaches = is_file($proxyMapFile) ? require $proxyMapFile : [];
+            $implementCache = [];
+            if (!empty($implementCache) && array_key_exists($interfaceClass, $implementCaches)) {
+                $implementCache = $implementCaches[$interfaceClass];
+            }
+            $ref = null;
+            if (!empty($implementCache['implementClass'])) {
+                $ref = new \ReflectionClass($implementCache['implementClass']);
+                if ($ref->getAttributes(Service::class)) {
+                    $implementClassFile = $ref->getFileName();
+                    if (!empty($implementCache['mtime']) && $implementCache['mtime'] >= filemtime($implementClassFile)) {
+                        $implementClass = $implementCache['implementClass'];
+                        $pathSplitList = explode('\\', $implementCache['implementClass']);
+                        $implementClassName = array_pop($pathSplitList);
+                    }
+                }
+                if (empty($implementClass))
+                    unset($implementCaches[$interfaceClass]);
+            }
 
-            $ps = explode('/', $reflectionClass->getFileName());
-            array_pop($ps);
-            $implPath = join('/', $ps) . '/' . $scanImplPath;
-            if (!is_dir($implPath))
-                return null;
+            if (empty($implementClass)) {
+                $injectConfig = $config['inject'] ?? [];
+                $scanImplPath = $injectConfig['impl_path'] ?? 'Impl';
+                $is = explode('\\', $interfaceClass);
+                array_pop($is);
+                $namespace = join('\\', $is);
 
-            $scanList = scandir($implPath);
-            foreach ($scanList as $file) {
-                if (empty($file) || $file == '.' || $file == '..')
-                    continue;
-                if (!empty($property->qualifier) && $file != $property->qualifier)
-                    continue;
-                $classFile = "{$implPath}/{$file}";
-                if (!is_file($classFile))
-                    continue;
-                $fileName = substr($file, 0, strpos($file, '.php'));
-                $class = "{$namespace}\\{$scanImplPath}\\" . $fileName;
-                if (!class_exists($class))
-                    continue;
-                $ref = $this->exists($class) ? $this->take($class) : new \ReflectionClass($class);
-                if ($ref->implementsInterface($interfaceClass) && $ref->getAttributes(Service::class)) {
-                    $implementClass = $class;
-                    $implementClassName = $fileName;
-                    $implementClassFile = $classFile;
-                    break;
+                $ps = explode('/', $reflectionClass->getFileName());
+                array_pop($ps);
+                $implPath = join('/', $ps) . '/' . $scanImplPath;
+                if (!is_dir($implPath))
+                    return null;
+
+                $scanList = scandir($implPath);
+                foreach ($scanList as $file) {
+                    if (empty($file) || $file == '.' || $file == '..')
+                        continue;
+                    if (!empty($property->qualifier) && $file != $property->qualifier)
+                        continue;
+                    $classFile = "{$implPath}/{$file}";
+                    if (!is_file($classFile))
+                        continue;
+                    $fileName = substr($file, 0, strpos($file, '.php'));
+                    $class = "{$namespace}\\{$scanImplPath}\\" . $fileName;
+                    if (!class_exists($class))
+                        continue;
+                    $ref = !empty($implementCache['implementClass']) && $implementCache['implementClass'] == $class && $ref ? $ref : ($this->exists($class) ? $this->take($class) : new \ReflectionClass($class));
+                    if ($ref->implementsInterface($interfaceClass) && $ref->getAttributes(Service::class)) {
+                        $implementClass = $class;
+                        $implementClassName = $fileName;
+                        $implementClassFile = $classFile;
+                        $locker = Sync::create("sync_save_inject_cache:{$implementClass}");
+                        if ($locker->lock()) {
+                            $implementCaches = $implementCaches ?: [];
+                            $implementCaches[$interfaceClass] = [
+                                'implementClass' => $implementClass,
+                                'mtime' => filemtime($implementClassFile),
+                            ];
+                            if (!is_dir($path))
+                                mkdir($path, 0755, true);
+                            file_put_contents($proxyMapFile, "<?php\r\nreturn " . var_export($implementCaches, true) . ';');
+                            $locker->unlock();
+                        }
+                        break;
+                    }
                 }
             }
         }
         if (!$implementClass)
             return null;
 
-        $path = $path ?: Annotation::getAnnotationPath('proxies/implements', $config);
+        $path = $path ?: Annotation::getAnnotationPath('proxies', $config);
         $mtime = filemtime($implementClassFile);
+        $path .= "/implements";
         if (!is_dir($path))
             mkdir($path, 0755, true);
         $proxyFile = "{$path}/{$implementClassName}.php";
