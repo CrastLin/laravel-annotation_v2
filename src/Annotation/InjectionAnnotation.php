@@ -109,6 +109,17 @@ class InjectionAnnotation
     }
 
 
+    function getReflectClass(string $class): ?\ReflectionClass
+    {
+        $field = "reflect.{$class}";
+        $reflect = $this->exists($field) ? $this->take($field) : null;
+        if ($reflect instanceof \ReflectionClass)
+            return $reflect;
+        $reflect = new \ReflectionClass($class);
+        $this->bind("reflect.{$class}", $reflect);
+        return $reflect;
+    }
+
     /**
      * 获取注入信息缓存
      * @param \ReflectionClass $reflect
@@ -280,7 +291,7 @@ class InjectionAnnotation
             if (!class_exists($property->qualifier))
                 throw new AnnotationException("Qualifier Class {$property->qualifier} is not exists", 500);
 
-            $ref = new \ReflectionClass($property->qualifier);
+            $ref = $this->getReflectClass($property->qualifier);
             if ($ref->getAttributes(Service::class)) {
                 $implementClass = $property->qualifier;
                 $pathSplitList = explode('\\', $property->qualifier);
@@ -297,7 +308,7 @@ class InjectionAnnotation
             }
             $ref = null;
             if (!empty($implementCache['implementClass'])) {
-                $ref = new \ReflectionClass($implementCache['implementClass']);
+                $ref = $this->getReflectClass($implementCache['implementClass']);
                 if ($ref->getAttributes(Service::class)) {
                     $implementClassFile = $ref->getFileName();
                     if (!empty($implementCache['mtime']) && $implementCache['mtime'] >= filemtime($implementClassFile)) {
@@ -336,7 +347,7 @@ class InjectionAnnotation
                     $class = "{$namespace}\\{$scanImplPath}\\" . $fileName;
                     if (!class_exists($class))
                         continue;
-                    $ref = !empty($implementCache['implementClass']) && $implementCache['implementClass'] == $class && $ref ? $ref : ($this->exists($class) ? $this->take($class) : new \ReflectionClass($class));
+                    $ref = $this->getReflectClass($class);
                     if ($ref->implementsInterface($interfaceClass) && $ref->getAttributes(Service::class)) {
                         $implementClass = $class;
                         $implementClassName = $fileName;
@@ -388,7 +399,6 @@ class InjectionAnnotation
                 if ($parameter->isDefaultValueAvailable()) {
                     $value = $parameter->getDefaultValue();
                     $valueStr = is_null($value) ? 'null' : ($value == '' ? "''" : $value);
-                    var_dump($valueStr);
                     $parameterContent .= ' = ' . var_export($valueStr, true);
                 }
                 $parameterContentList[] = $parameterContent;
@@ -407,26 +417,27 @@ class InjectionAnnotation
         $thisImplementInstance = '$this->implementInstance';
         $method = '$method';
         $arguments = '$arguments';
+        $fullImplementClass = '\\' . ltrim($implementClass, '\\');
         $proxyFileContent = <<<php
 <?php
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
  return new class implements \\{$interfaceClass} {
 protected string {$implementClassVar} = '{$implementClass}';
-protected \\{$implementClass} {$implementInstanceVar};
-protected ?\\ReflectionClass {$reflectClassVar} = null;
+protected $fullImplementClass {$implementInstanceVar};
+protected ?\\ReflectionClass {$reflectClassVar};
 
-protected function getInstance():\\{$implementClass}
+protected function getInstance(): $fullImplementClass
 {
-if(!empty($thisImplementInstance))
-return $thisImplementInstance;
+if(isset($thisImplementInstance))
+ return $thisImplementInstance;
 // inject constructor
 // Get constructor line parameter injection
         \$implementInjectParams = [];
-        \$this->reflectClass = \$this->reflectClass ?: new \ReflectionClass(\$this->implementClass);
+        \$this->reflectClass = \$this->reflectClass ?? Injection::getReflectClass(\$this->implementClass);
         if (\$constructor = \$this->reflectClass->getConstructor())
            Annotation::handleInvokeAnnotation(\$this->implementClass, \$constructor, [], \$implementInjectParams, true, true);
-$thisImplementInstance = new \\{$implementClass}(...\$implementInjectParams);
+$thisImplementInstance = new $fullImplementClass(...\$implementInjectParams);
 
 Injection::injectWithObject($thisImplementInstance, \$this->reflectClass);
 return $thisImplementInstance;
@@ -501,7 +512,7 @@ php;
                 $bindName .= ":{$property->qualifier}";
             if (!$this->exists($bindName)) {
                 // search a class when it implements interface
-                $ref = new \ReflectionClass($injectClass);
+                $ref = $this->getReflectClass($injectClass);
                 // create proxy class for inject
                 if ($ref->isInterface()) {
                     $value = $this->searchImplementClass($ref, $property);
@@ -573,8 +584,7 @@ php;
     function autoInject(string $class, &$object = null, ?\ReflectionClass $reflect = null): void
     {
         if (!$reflect) {
-            $reflect = new \ReflectionClass($class);
-            $this->bind("reflect.{$class}", $reflect);
+            $reflect = $this->getReflectClass($class);
         }
         if ($reflect->isAnonymous())
             throw new AnnotationException("Anonymous class: {$reflect->getName()} currently do not support dependency injection");

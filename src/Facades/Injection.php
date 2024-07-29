@@ -27,6 +27,7 @@ use Crastlin\LaravelAnnotation\Annotation\InjectionAnnotation;
  * @method static void injectWithObject($instance, ?\ReflectionClass $reflectionClass = null)
  * @method static object injectWithClass(string $class)
  * @method static mixed getInjectTypeofValue(string $class, \stdClass $property, bool $bindInjectMap = true)
+ * @method static \ReflectionClass getReflectClass(string $class)
  */
 class Injection extends Facade
 {
