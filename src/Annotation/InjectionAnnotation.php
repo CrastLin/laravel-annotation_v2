@@ -37,7 +37,6 @@ class InjectionAnnotation
     function bind(string $name, mixed $value): void
     {
         $this->attributes[$name] = $value;
-        $this->refreshAllObject($name);
     }
 
     function offsetSet(string $name, mixed $value): void
@@ -267,8 +266,8 @@ class InjectionAnnotation
     {
         if (empty($this->injectAttributeObjectMap) || !array_key_exists($bindName, $this->injectAttributeObjectMap))
             return;
-        foreach ($this->injectAttributeObjectMap as $class) {
-            $this->injectWithClass($class);
+        foreach ($this->injectAttributeObjectMap[$bindName] as $class) {
+            $this->injectWithClass($class, true);
         }
     }
 
@@ -645,10 +644,13 @@ php;
     }
 
     // inject by class namesapce
-    function injectWithClass(string $class)
+    function injectWithClass(string $class, bool $ignoreNotExists = false)
     {
-        if (!class_exists($class))
+        if (!class_exists($class)) {
+            if ($ignoreNotExists)
+                return null;
             throw new \Exception("Class {$class} is not exists");
+        }
         $object = null;
         $this->autoInject($class, $object);
         return $object;

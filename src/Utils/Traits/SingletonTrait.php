@@ -55,7 +55,7 @@ trait SingletonTrait
 
     static function singleton(...$params): static
     {
-        return static::singletonByParent('', $params);
+        return static::singletonByParent('', ...$params);
     }
 
     /**

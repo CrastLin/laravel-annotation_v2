@@ -248,6 +248,9 @@ class InterceptorAnnotation extends Annotation
                     $messages["{$validator->field}.{$validator->rule}"] = $validator->message;
                 }
                 if (!empty($validator->attributes)) {
+                    foreach ($validator->attributes as $field => $attribute) {
+                        $attributes[$field] = $attribute ?: ($attributes[$field] ?? '');
+                    }
                     $attributes = array_merge($attributes, $validator->attributes);
                 } elseif (!empty($validator->attribute)) {
                     $attributes[$validator->field] = $validator->attribute;
@@ -261,7 +264,9 @@ class InterceptorAnnotation extends Annotation
                 $rules[$validator->field][] = $rule;
                 $ruleName = explode(':', $rule)[0];
                 $messages["{$validator->field}.{$ruleName}"] = $validator->message;
-                $attributes[$validator->field] = !empty($validator->attribute) ? $validator->attribute : $validator->field;
+                if (empty($attributes[$validator->field]) || $attributes[$validator->field] == $validator->field)
+                    $attributes[$validator->field] = !empty($validator->attribute) ? $validator->attribute : $validator->field;
+
             }
         }
         if (!empty($rules)) {
