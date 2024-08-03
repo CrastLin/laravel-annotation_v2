@@ -132,12 +132,12 @@ class NodeAnnotation extends Annotation
                                 throw new AnnotationException("{$path} Incorrect parent node setting", 501);
                         }
                         $node->code = $annotation->code;
-                        $node->icon = $annotation->icon ?? '';
-                        $node->remark = $annotation->remark ?? '';
-                        $node->ignore = $annotation->ignore;
-                        $node->delete = $annotation->delete;
-                        $node->component = $annotation->component;
                     }
+                    $node->icon = $annotation->icon ?? '';
+                    $node->remark = $annotation->remark ?? '';
+                    $node->ignore = $annotation->ignore;
+                    $node->delete = $annotation->delete;
+                    $node->component = $annotation->component;
                     break;
                 default:
                     throw new AnnotationException("The current module does not support annotation classes: {$attributeClass}", 502);
