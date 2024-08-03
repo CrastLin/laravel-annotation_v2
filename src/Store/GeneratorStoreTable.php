@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Crastlin\LaravelAnnotation\Store;
 
+use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
 use Illuminate\Support\Facades\DB;
 
 class GeneratorStoreTable
@@ -62,15 +63,15 @@ class GeneratorStoreTable
         $isTree = !empty($std->virtualNode);
         $action = $std->action ?? ($isTree ? $std->virtualNode : '');
         $parentId = 0;
-        if (!$isTree) {
+        if (!empty($std->parent)) {
             $split = explode('/', $std->parent);
             $parent = self::node($split[0], $split[1], $split[2]);
             if (!$parent)
-                throw new \Exception("[{$std->name}] The parent node {$std->parent} of node {$module}/{$controller}->{$action} has not been generated", 600);
+                throw new AnnotationException("[{$std->name}] The parent node {$std->parent} of node {$module}/{$controller}->{$action} has not been generated", 600);
             $parentId = $parent->id;
         }
         if (empty($action))
-            throw new \Exception('the node action is not defined | node: ' . json_encode($std), 500);
+            throw new AnnotationException('the node action is not defined | node: ' . json_encode($std), 500);
         $node = self::node($module, $controller, $action);
         if (!$node) {
             $node = self::nodeById();

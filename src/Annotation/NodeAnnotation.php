@@ -18,6 +18,8 @@ use stdClass;
 class NodeAnnotation extends Annotation
 {
 
+    static int $triesTimes = 0;
+
     /**
      * Analyze annotations
      * @param mixed ...$parameters
@@ -97,9 +99,18 @@ class NodeAnnotation extends Annotation
                     if (!empty($tree->preNamedSubMethods) && in_array($node->action, $tree->preNamedSubMethods))
                         $node->name = "{$tree->name}{$node->name}";
                     $node->sort = $annotation->sort ?? 0;
-                    if (!$tree)
+                    if (!$tree) {
                         $node->preNamedSubMethods = !empty($annotation->preNamedSubMethods) ? explode(',', $annotation->preNamedSubMethods) : [];
-                    if ($tree) {
+                        if (!empty($annotation->parent)) {
+                            $ps = explode('/', $annotation->parent);
+                            $count = count($ps);
+                            $node->parent = match ($count) {
+                                1 => "{$node->module}/{$node->ct}/{$annotation->parent}",
+                                2 => "{$node->module}/{$annotation->parent}",
+                                3 => $annotation->parent,
+                            };
+                        }
+                    } else {
                         if (empty($node->name))
                             throw new AnnotationException("{$path} Node name cannot be empty", 500);
                         $node->parent = "{$tree->module}/{$tree->ct}/{$tree->virtualNode}";
@@ -140,6 +151,7 @@ class NodeAnnotation extends Annotation
             foreach ($items as $item) {
                 if (empty($item['data']))
                     continue;
+
                 [$tree, $path, $module] = [$item['data'], $item['path'], $item['module']];
                 if (!empty($tree->virtualNode)) {
                     GeneratorStoreTable::store($tree, $module, $tree->ct);
@@ -149,13 +161,19 @@ class NodeAnnotation extends Annotation
                         GeneratorStoreTable::store($node, $module, $tree->ct);
                         echo "+++ [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} +++" . PHP_EOL;
                     } catch (\Throwable $exception) {
-                        if ($exception->getCode() < 600)
+                        if ($exception instanceof AnnotationException && $exception->getCode() < 600)
                             throw $exception;
-                        echo "=== [WARNING] {$exception->getMessage()} ===" . PHP_EOL;
+                        echo "=== [ERROR] {$exception->getMessage()} ===" . PHP_EOL;
+                        ++self::$triesTimes;
                     }
                 }
             }
         }
+        if (self::$triesTimes > 0 && self::$triesTimes <= 3) {
+            echo "=== [INFO] Repeat Regenerating based on the parent node ... ===" . PHP_EOL;
+            self::build($analysisResult, $savePath);
+        }
     }
+
 
 }
