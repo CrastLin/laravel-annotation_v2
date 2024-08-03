@@ -147,29 +147,32 @@ class NodeAnnotation extends Annotation
 
     static function build(array $analysisResult, string $savePath): void
     {
+        $hasParentErrors = false;
         foreach ($analysisResult as $items) {
             foreach ($items as $item) {
                 if (empty($item['data']))
                     continue;
-
-                [$tree, $path, $module] = [$item['data'], $item['path'], $item['module']];
-                if (!empty($tree->virtualNode)) {
-                    GeneratorStoreTable::store($tree, $module, $tree->ct);
-                }
-                foreach ($tree->nodeList as $node) {
-                    try {
-                        GeneratorStoreTable::store($node, $module, $tree->ct);
-                        echo "+++ [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} +++" . PHP_EOL;
-                    } catch (\Throwable $exception) {
-                        if ($exception instanceof AnnotationException && $exception->getCode() < 600)
-                            throw $exception;
-                        echo "=== [ERROR] {$exception->getMessage()} ===" . PHP_EOL;
-                        ++self::$triesTimes;
+                try {
+                    [$tree, $path, $module] = [$item['data'], $item['path'], $item['module']];
+                    if (!empty($tree->virtualNode)) {
+                        GeneratorStoreTable::store($tree, $module, $tree->ct);
+                        echo "+- <Tree> [SUCCESS] [{$tree->name}] {$module}/{$tree->ct}/{$tree->virtualNode} </Tree>" . PHP_EOL;
                     }
+                    foreach ($tree->nodeList as $node) {
+
+                        GeneratorStoreTable::store($node, $module, $tree->ct);
+                        echo "+--- <Node> [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} </Node>" . PHP_EOL;
+                    }
+                } catch (\Throwable $exception) {
+                    if (!$exception instanceof AnnotationException || $exception->getCode() < 600)
+                        throw $exception;
+                    echo "=== [ERROR] {$exception->getMessage()} ===" . PHP_EOL;
+                    ++self::$triesTimes;
+                    $hasParentErrors = true;
                 }
             }
         }
-        if (self::$triesTimes > 0 && self::$triesTimes <= 3) {
+        if ($hasParentErrors && self::$triesTimes <= 3) {
             echo "=== [INFO] Repeat Regenerating based on the parent node ... ===" . PHP_EOL;
             self::build($analysisResult, $savePath);
         }
