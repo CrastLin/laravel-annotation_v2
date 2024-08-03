@@ -88,6 +88,11 @@ class NodeAnnotation extends Annotation
                     $node->sort = $annotation->sort ?? 0;
                     $node->preNamedSubMethods = !empty($annotation->preNamedSubMethods) ? explode(',', $annotation->preNamedSubMethods) : [];
                     $node->checkMode = $annotation->checkMode;
+                    $node->icon = $annotation->icon ?? '';
+                    $node->remark = $annotation->remark ?? '';
+                    $node->ignore = $annotation->ignore;
+                    $node->delete = $annotation->delete;
+                    $node->component = $annotation->component;
                     break;
                 case Node::class:
                     // Since this version no longer requires the creation of a root node, if there is a method name that matches the virtual root node name, it will be ignored

@@ -43,9 +43,14 @@ class Tree
         public int      $sort = 0,
         public bool     $isMenuNode = true,
         public bool     $isAuthNode = false,
+        public string   $icon = '',
         public string   $preNamedSubMethods = '',
         public string   $virtualNode = 'defaultPage',
         public NodeMode $checkMode = NodeMode::LOOSE_MODE,
+        public string   $remark = '',
+        public bool     $ignore = false,
+        public bool     $delete = false,
+        public string   $component = '',
     )
     {
     }

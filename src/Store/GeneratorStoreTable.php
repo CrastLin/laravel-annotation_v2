@@ -85,13 +85,13 @@ class GeneratorStoreTable
         $node->menu = $std->isMenuNode;
         $node->auth = $std->isAuthNode;
         $node->sort = $std->sort;
+        $node->icon = $std->icon;
+        $node->remark = $std->remark;
+        $node->is_deleted = $std->delete;
+        $node->component = $std->component;
+        $node->is_ignored = $std->ignore;
         if (!$isTree) {
             $node->code = $std->code->value;
-            $node->icon = $std->icon;
-            $node->remark = $std->remark;
-            $node->is_deleted = $std->delete;
-            $node->component = $std->component;
-            $node->is_ignored = $std->ignore;
         }
         $node->save();
     }
