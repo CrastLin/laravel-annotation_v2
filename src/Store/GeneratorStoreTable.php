@@ -78,6 +78,7 @@ class GeneratorStoreTable
             $node->module = $module;
             $node->controller = $controller;
             $node->action = $action;
+            $node->rule = "{$module}/{$controller}/{$action}";
         }
         $node->name = $std->name;
         $node->parent_id = $parentId;
