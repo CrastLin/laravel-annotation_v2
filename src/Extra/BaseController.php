@@ -136,26 +136,26 @@ class BaseController extends Controller
             if (is_object($serviceClass)) {
                 if (!$serviceClass->{$method}(...$serviceParameters)) {
                     $result = $serviceClass->getResult();
-                    return ['code' => $serviceClass->getResCode(), 'msg' => $serviceClass->getError(), 'data' => $result];
+                    return ['code' => $serviceClass->getResCode(), 'msg' => $serviceClass->getError(), 'data' => (object)$result];
                 }
                 $result = $serviceClass->getResult();
                 $result = !empty($anotherParameters) ? array_merge($result, $anotherParameters) : $result;
                 return [
                     'code' => $serviceClass->getResCode(),
                     'msg' => $serviceClass->getNotice(),
-                    'data' => $result,
+                    'data' => (object)$result,
                 ];
             }
             // When the service is a service implementation class address
             $serviceInstance = BaseImplement::singletonByParent($serviceClass);
             if (!$serviceInstance($method, ...$serviceParameters))
-                return ['code' => $serviceInstance->getResCode(), 'msg' => $serviceInstance->getError(), 'data' => $serviceInstance->getResult()];
+                return ['code' => $serviceInstance->getResCode(), 'msg' => $serviceInstance->getError(), 'data' => (object)$serviceInstance->getResult()];
             $result = $serviceInstance->getResult();
             $result = !empty($anotherParameters) ? array_merge($result, $anotherParameters) : $result;
             return [
                 'code' => $serviceInstance->getResCode(),
                 'msg' => $serviceInstance->getNotice(),
-                'data' => $result,
+                'data' => (object)$result,
             ];
         } catch (Throwable $exception) {
             $this->saveException('serviceException', $exception);
