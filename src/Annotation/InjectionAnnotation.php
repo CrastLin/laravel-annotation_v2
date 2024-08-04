@@ -137,7 +137,7 @@ class InjectionAnnotation
         $path = $rootPath . join('/', $subList) . '/';
         $hasPath = is_dir($path);
         $file = $path . $name . '.php';
-        $hasFile = $hasPath && is_file($file);
+        $hasFile = $hasPath && file_exists($file);
         $injectData = $hasFile ? require $file : [];
 
         $mtime = (string)filemtime($classFile);
@@ -165,7 +165,7 @@ class InjectionAnnotation
         if (!empty($injectData['parents'])) {
             foreach ($injectData['parents'] as $parent) {
                 $parentFile = "{$basePath}{$parent['file']}";
-                if (is_file($parentFile) && $st = filemtime($parentFile))
+                if (file_exists($parentFile) && $st = filemtime($parentFile))
                     $mtime .= sprintf('-%d', $st);
                 else {
                     $mtime .= '-99';
@@ -300,7 +300,7 @@ class InjectionAnnotation
         } else {
             $path = Annotation::getAnnotationPath('proxies', $config);
             $proxyMapFile = "{$path}/map.php";
-            $implementCaches = is_file($proxyMapFile) ? require $proxyMapFile : [];
+            $implementCaches = file_exists($proxyMapFile) ? require $proxyMapFile : [];
             $implementCache = [];
             if (!empty($implementCache) && array_key_exists($interfaceClass, $implementCaches)) {
                 $implementCache = $implementCaches[$interfaceClass];
@@ -340,7 +340,7 @@ class InjectionAnnotation
                     if (!empty($property->qualifier) && $file != $property->qualifier)
                         continue;
                     $classFile = "{$implPath}/{$file}";
-                    if (!is_file($classFile))
+                    if (!file_exists($classFile))
                         continue;
                     $fileName = substr($file, 0, strpos($file, '.php'));
                     $class = "{$namespace}\\{$scanImplPath}\\" . $fileName;
@@ -377,7 +377,7 @@ class InjectionAnnotation
         if (!is_dir($path))
             mkdir($path, 0755, true);
         $proxyFile = "{$path}/{$implementClassName}.php";
-        $hasFile = is_file($proxyFile);
+        $hasFile = file_exists($proxyFile);
         if ($hasFile && filemtime($proxyFile) >= $mtime)
             return require $proxyFile;
 

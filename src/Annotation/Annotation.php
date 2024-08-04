@@ -125,22 +125,26 @@ abstract class Annotation implements Annotator
             $name = $parameter->getName();
             // Parameter dependency injection
             $attributes = $parameter->getAttributes();
-            $defaultValue = $parameter->getDefaultValue();
-            $argument = $arguments[$k] ?? null;
-            if (is_null($argument) || $argument == $defaultValue) {
-                $injectAnnotation = null;
-                foreach ($attributes as $attribute) {
-                    $an = $attribute->getName();
-                    if ($an == Autowired::class) {
-                        $injectAnnotation = new \stdClass();
-                    } elseif ($an == Inject::class) {
-                        $injectAnnotation = $attribute->newInstance();
+            try {
+                $defaultValue = $parameter->getDefaultValue();
+                $argument = $arguments[$k] ?? null;
+                if (is_null($argument) || $argument == $defaultValue) {
+                    $injectAnnotation = null;
+                    foreach ($attributes as $attribute) {
+                        $an = $attribute->getName();
+                        if ($an == Autowired::class) {
+                            $injectAnnotation = new \stdClass();
+                        } elseif ($an == Inject::class) {
+                            $injectAnnotation = $attribute->newInstance();
+                        }
+                        if (!$injectAnnotation)
+                            continue;
+                        $arguments[$k] = $argument = Injection::takeByParameter($parameter, $injectAnnotation, $action);
+                        break;
                     }
-                    if (!$injectAnnotation)
-                        continue;
-                    $arguments[$k] = $argument = Injection::takeByParameter($parameter, $injectAnnotation, $action);
-                    break;
                 }
+            } catch (\Throwable $throwable) {
+
             }
 
             if (!$isOnlyInjectMode) {
