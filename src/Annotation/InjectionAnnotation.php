@@ -351,17 +351,21 @@ class InjectionAnnotation
                         $implementClass = $class;
                         $implementClassName = $fileName;
                         $implementClassFile = $classFile;
-                        $locker = Sync::create("sync_save_inject_cache:{$implementClass}");
-                        if ($locker->lock()) {
-                            $implementCaches = !empty($implementCaches) && is_array($implementCaches) ? $implementCaches : [];
-                            $implementCaches[$interfaceClass] = [
-                                'implementClass' => $implementClass,
-                                'mtime' => filemtime($implementClassFile),
-                            ];
-                            if (!is_dir($path))
-                                mkdir($path, 0755, true);
-                            file_put_contents($proxyMapFile, "<?php\r\nreturn " . var_export($implementCaches, true) . ';');
-                            $locker->unlock();
+                        try {
+                            $locker = Sync::create("sync_save_inject_cache:{$implementClass}");
+                            if ($locker->lock()) {
+                                $implementCaches = !empty($implementCaches) && is_array($implementCaches) ? $implementCaches : [];
+                                $implementCaches[$interfaceClass] = [
+                                    'implementClass' => $implementClass,
+                                    'mtime' => filemtime($implementClassFile),
+                                ];
+                                if (!is_dir($path))
+                                    mkdir($path, 0755, true);
+                                file_put_contents($proxyMapFile, "<?php\r\nreturn " . var_export($implementCaches, true) . ';');
+                                $locker->unlock();
+                            }
+                        } catch (\Throwable $exception) {
+                            
                         }
                         break;
                     }
@@ -378,10 +382,24 @@ class InjectionAnnotation
             mkdir($path, 0755, true);
         $proxyFile = "{$path}/{$implementClassName}.php";
         $hasFile = is_file($proxyFile);
+
         if ($hasFile && filemtime($proxyFile) >= $mtime) {
             $object = require $proxyFile;
-            if ($object instanceof $implementClass)
+            if ($object instanceof $interfaceClass)
                 return $object;
+        }
+
+        $locker = Sync::create("build_proxy_inject:{$implementClass}");
+        if (!$locker->lock()) {
+            if ($constructor = $ref->getConstructor()) {
+                $injectParams = [];
+                Annotation::handleInvokeAnnotation($implementClass, $constructor, [], $injectParams, true, true);
+                $object = new $implementClass(...$injectParams);
+            } else {
+                $object = new $implementClass();
+            }
+            $this->injectWithObject($object, $ref);
+            return $object;
         }
 
         if ($hasFile)
@@ -453,8 +471,9 @@ function __call(string {$method}, array {$arguments})
 php;
 
         file_put_contents($proxyFile, $proxyFileContent);
-
-        return require $proxyFile;
+        $object = require $proxyFile;;
+        $locker->unlock();
+        return $object;
     }
 
 
