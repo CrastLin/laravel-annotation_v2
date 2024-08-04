@@ -137,7 +137,7 @@ class InjectionAnnotation
         $path = $rootPath . join('/', $subList) . '/';
         $hasPath = is_dir($path);
         $file = $path . $name . '.php';
-        $hasFile = $hasPath && file_exists($file);
+        $hasFile = $hasPath && is_file($file);
         $injectData = $hasFile ? require $file : [];
 
         $mtime = (string)filemtime($classFile);
@@ -165,7 +165,7 @@ class InjectionAnnotation
         if (!empty($injectData['parents'])) {
             foreach ($injectData['parents'] as $parent) {
                 $parentFile = "{$basePath}{$parent['file']}";
-                if (file_exists($parentFile) && $st = filemtime($parentFile))
+                if (is_file($parentFile) && $st = filemtime($parentFile))
                     $mtime .= sprintf('-%d', $st);
                 else {
                     $mtime .= '-99';
@@ -300,7 +300,7 @@ class InjectionAnnotation
         } else {
             $path = Annotation::getAnnotationPath('proxies', $config);
             $proxyMapFile = "{$path}/map.php";
-            $implementCaches = file_exists($proxyMapFile) ? require $proxyMapFile : [];
+            $implementCaches = is_file($proxyMapFile) ? require $proxyMapFile : [];
             $implementCache = [];
             if (!empty($implementCache) && array_key_exists($interfaceClass, $implementCaches)) {
                 $implementCache = $implementCaches[$interfaceClass];
@@ -340,7 +340,7 @@ class InjectionAnnotation
                     if (!empty($property->qualifier) && $file != $property->qualifier)
                         continue;
                     $classFile = "{$implPath}/{$file}";
-                    if (!file_exists($classFile))
+                    if (!is_file($classFile))
                         continue;
                     $fileName = substr($file, 0, strpos($file, '.php'));
                     $class = "{$namespace}\\{$scanImplPath}\\" . $fileName;
@@ -353,7 +353,7 @@ class InjectionAnnotation
                         $implementClassFile = $classFile;
                         $locker = Sync::create("sync_save_inject_cache:{$implementClass}");
                         if ($locker->lock()) {
-                            $implementCaches = $implementCaches ?: [];
+                            $implementCaches = !empty($implementCaches) && is_array($implementCaches) ? $implementCaches : [];
                             $implementCaches[$interfaceClass] = [
                                 'implementClass' => $implementClass,
                                 'mtime' => filemtime($implementClassFile),
@@ -377,9 +377,12 @@ class InjectionAnnotation
         if (!is_dir($path))
             mkdir($path, 0755, true);
         $proxyFile = "{$path}/{$implementClassName}.php";
-        $hasFile = file_exists($proxyFile);
-        if ($hasFile && filemtime($proxyFile) >= $mtime)
-            return require $proxyFile;
+        $hasFile = is_file($proxyFile);
+        if ($hasFile && filemtime($proxyFile) >= $mtime) {
+            $object = require $proxyFile;
+            if ($object instanceof $implementClass)
+                return $object;
+        }
 
         if ($hasFile)
             @unlink($proxyFile);

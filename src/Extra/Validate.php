@@ -164,13 +164,13 @@ class Validate implements \Illuminate\Contracts\Validation\Validator
      * make validate instance
      * @param string $ruleClass
      * @param ?array $data
-     * @param Validate $validate
+     * @param ?Validate $validate
      * @return \Illuminate\Contracts\Validation\Validator
      * @throws Throwable
      */
-    static function make(string $ruleClass, ?array $data, &$validate = null): \Illuminate\Contracts\Validation\Validator
+    static function make(string $ruleClass, ?array $data, Validate &$validate = null): \Illuminate\Contracts\Validation\Validator
     {
-        $validate = self::singleton($ruleClass)->setData($data);
+        $validate = self::singletonByParent($ruleClass)->setData($data);
         return $validate->validate();
     }
 

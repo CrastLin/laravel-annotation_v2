@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Crastlin\LaravelAnnotation\Utils\Traits;
 
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
+use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use ErrorException;
 use ReflectionClass;
@@ -32,13 +33,15 @@ trait SingletonTrait
         $reflectClass = Injection::exists("reflect.{$name}") ? Injection::take("reflect.{$name}") : null;
         if (!isset(self::$singleton[$key])) {
             if (!class_exists($name))
-                throw new ErrorException("class: {$name} is not exists", 0);
+                throw new AnnotationException("class: {$name} is not exists", 407);
             // inject constructor
             $reflectClass = $reflectClass ?: new ReflectionClass($name);
             if ($constructor = $reflectClass->getConstructor())
                 Annotation::handleInvokeAnnotation($name, $constructor, [], $params, true, true);
             self::$singleton[$key] = new $name(...$params);
         }
+        if (!self::$singleton[$key] instanceof static)
+            throw new AnnotationException("sub class: {$name} must instanceof " . static::class, 408);
         if (method_exists(self::$singleton[$key], 'init')) {
             if ($reflectClass) {
                 // inject init method
