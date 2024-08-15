@@ -29,7 +29,7 @@ class RouteAnnotation extends Annotation
      * @param int $varCount
      * @return bool
      */
-    static function exists(string $path, string $mapBasePath, ?array $mapRecords = null, ?array $prefixes = null, ?array $resources = null, int $varCount = 0, &$datum = []): bool
+    static function exists(string $path, string $mapBasePath, ?array $mapRecords = null, ?array $resources = null, int $varCount = 0, &$datum = []): bool
     {
         if (is_null($mapRecords)) {
             $mapFile = "{$mapBasePath}/map.php";
@@ -38,12 +38,8 @@ class RouteAnnotation extends Annotation
                 return false;
             $cacheFile = "{$mapBasePath}/cache.php";
             $cache = is_file($cacheFile) ? require $cacheFile : [];
-            $prefixes = $cache['prefixes'] ?? [];
             $resources = $cache['resources'] ?? [];
         }
-        if (!empty($prefixes) && in_array($path, $prefixes))
-            return true;
-
         if (!empty($resources) && in_array($path, $resources))
             return true;
 
@@ -78,7 +74,7 @@ class RouteAnnotation extends Annotation
         $pathList = explode('/', $path);
         if (count($pathList) > 1) {
             array_pop($pathList);
-            return self::exists(join('/', $pathList), $mapBasePath, $mapRecords, $prefixes, $resources, ++$varCount, $datum);
+            return self::exists(join('/', $pathList), $mapBasePath, $mapRecords, $resources, ++$varCount, $datum);
         }
         return false;
     }
