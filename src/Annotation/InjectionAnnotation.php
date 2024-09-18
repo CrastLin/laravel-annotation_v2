@@ -302,7 +302,7 @@ class InjectionAnnotation
             $interfacePathList = explode('\\', $interfaceClass);
             $fe = array_pop($interfacePathList);
             $ff = join('_', $interfacePathList);
-            $proxyMapFile = "{$path}/maps/{$ff}_{$fe}";
+            $proxyMapFile = "{$path}/maps/{$ff}_{$fe}.php";
             $implementCache = is_file($proxyMapFile) ? require $proxyMapFile : [];
             $implementCache = [];
             $ref = null;
