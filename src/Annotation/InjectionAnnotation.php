@@ -299,7 +299,10 @@ class InjectionAnnotation
             }
         } else {
             $path = Annotation::getAnnotationPath('proxies', $config);
-            $proxyMapFile = "{$path}/maps/{$interfaceClass}.php";
+            $interfacePathList = explode('\\', $interfaceClass);
+            $fe = array_pop($interfacePathList);
+            $ff = join('_', $interfacePathList);
+            $proxyMapFile = "{$path}/maps/{$ff}_{$fe}";
             $implementCache = is_file($proxyMapFile) ? require $proxyMapFile : [];
             $implementCache = [];
             $ref = null;
@@ -318,10 +321,7 @@ class InjectionAnnotation
             if (empty($implementClass)) {
                 $injectConfig = $config['inject'] ?? [];
                 $scanImplPath = $injectConfig['impl_path'] ?? 'Impl';
-                $is = explode('\\', $interfaceClass);
-                array_pop($is);
-                $namespace = join('\\', $is);
-
+                $namespace = join('\\', $interfacePathList);
                 $ps = explode('/', $reflectionClass->getFileName());
                 array_pop($ps);
                 $implPath = join('/', $ps) . '/' . $scanImplPath;
