@@ -299,12 +299,9 @@ class InjectionAnnotation
             }
         } else {
             $path = Annotation::getAnnotationPath('proxies', $config);
-            $proxyMapFile = "{$path}/map.php";
-            $implementCaches = is_file($proxyMapFile) ? require $proxyMapFile : [];
+            $proxyMapFile = "{$path}/maps/{$interfaceClass}.php";
+            $implementCache = is_file($proxyMapFile) ? require $proxyMapFile : [];
             $implementCache = [];
-            if (!empty($implementCache) && array_key_exists($interfaceClass, $implementCaches)) {
-                $implementCache = $implementCaches[$interfaceClass];
-            }
             $ref = null;
             if (!empty($implementCache['implementClass'])) {
                 $ref = $this->getReflectClass($implementCache['implementClass']);
@@ -316,8 +313,6 @@ class InjectionAnnotation
                         $implementClassName = array_pop($pathSplitList);
                     }
                 }
-                if (empty($implementClass))
-                    unset($implementCaches[$interfaceClass]);
             }
 
             if (empty($implementClass)) {
@@ -354,24 +349,24 @@ class InjectionAnnotation
                         try {
                             $locker = Sync::create("sync_save_inject_cache:{$implementClass}");
                             if ($locker->lock()) {
-                                $implementCaches = !empty($implementCaches) && is_array($implementCaches) ? $implementCaches : [];
-                                $implementCaches[$interfaceClass] = [
+                                $implementCache = [
                                     'implementClass' => $implementClass,
                                     'mtime' => filemtime($implementClassFile),
                                 ];
-                                if (!is_dir($path))
-                                    mkdir($path, 0755, true);
-                                file_put_contents($proxyMapFile, "<?php\r\nreturn " . var_export($implementCaches, true) . ';');
+                                if (!is_dir($path . '/maps'))
+                                    mkdir($path . '/maps', 0755, true);
+                                file_put_contents($proxyMapFile, "<?php\r\nreturn " . var_export($implementCache, true) . ';');
                                 $locker->unlock();
                             }
                         } catch (\Throwable $exception) {
-                            
+
                         }
                         break;
                     }
                 }
             }
         }
+
         if (!$implementClass)
             return null;
 
