@@ -10,7 +10,7 @@
 
 ## 1、环境和安装
 ### 1.1. 环境要求
-- 由于使用了[PHP8.1和枚举特性](https://www.php.net/releases/8.1/en.php)，因此PHP版本最低要求 >= 8.1，框架版本使用的是 Laravel 9.x ([LeanKu Laravel9.x中文文档](https://learnku.com/docs/laravel/9.x))
+- 由于使用了[PHP8.1和枚举特性](https://www.php.net/releases/8.1/en.php)，因此PHP版本最低要求 >= 8.1，推荐版本 >= 8.2.24，框架版本使用的是 Laravel 9.x ([LeanKu Laravel9.x中文文档](https://learnku.com/docs/laravel/9.x))
 
 ### 1.2. 安装依赖包
 ````shell
