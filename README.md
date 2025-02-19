@@ -644,7 +644,7 @@ class IndexController extends \Illuminate\Routing\Controller
     }
 }
 ````
-- 以上注解相当于等同于以下代码
+- 以上注解等同于以下代码
 ```php
 namespace App\Http\Controllers\Portal;
 
@@ -1000,7 +1000,9 @@ class TokenCheck
  namespace App\Service;
  
  use Crastlin\LaravelAnnotation\Annotation\Attributes\Autowired;
- use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;use Crastlin\LaravelAnnotation\Extra\ResponseCode;use Crastlin\LaravelAnnotation\Utils\Traits\SingletonTrait;
+ use Crastlin\LaravelAnnotation\Annotation\Attributes\Inject;
+ use Crastlin\LaravelAnnotation\Extra\ResponseCode;
+ use Crastlin\LaravelAnnotation\Utils\Traits\SingletonTrait;
  use Crastlin\LaravelAnnotation\Utils\Traits\InvokeTrait;
  use App\Model\User;
  class UserService
@@ -1141,7 +1143,8 @@ use App\Service\UserService;
 namespace App\Http\Controllers\Portal;
   
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Autowired;
-use Crastlin\LaravelAnnotation\Annotation\Attributes\Qualifier;use Crastlin\LaravelAnnotation\Annotation\Attributes\Validation\Numeric;
+use Crastlin\LaravelAnnotation\Annotation\Attributes\Qualifier;
+use Crastlin\LaravelAnnotation\Annotation\Attributes\Validation\Numeric;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Validation\Required;
 use Crastlin\LaravelAnnotation\Extra\BaseController;
 use Crastlin\LaravelAnnotation\Facades\Injection;
