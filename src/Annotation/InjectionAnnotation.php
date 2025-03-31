@@ -286,6 +286,7 @@ class InjectionAnnotation
         $config = [];
         $path = '';
         $ref = null;
+        $ds = DIRECTORY_SEPARATOR;
         if (!empty($property->qualifier) && str_contains($property->qualifier, '\\')) {
             if (!class_exists($property->qualifier))
                 throw new AnnotationException("Qualifier Class {$property->qualifier} is not exists", 500);
@@ -299,10 +300,11 @@ class InjectionAnnotation
             }
         } else {
             $path = Annotation::getAnnotationPath('proxies', $config);
+
             $interfacePathList = explode('\\', $interfaceClass);
             $fe = array_pop($interfacePathList);
             $ff = join('_', $interfacePathList);
-            $proxyMapFile = "{$path}/maps/{$ff}_{$fe}.php";
+            $proxyMapFile = "{$path}{$ds}maps{$ds}{$ff}_{$fe}.php";
             $implementCache = is_file($proxyMapFile) ? require $proxyMapFile : [];
             $implementCache = [];
             $ref = null;
@@ -322,9 +324,9 @@ class InjectionAnnotation
                 $injectConfig = $config['inject'] ?? [];
                 $scanImplPath = $injectConfig['impl_path'] ?? 'Impl';
                 $namespace = join('\\', $interfacePathList);
-                $ps = explode('/', $reflectionClass->getFileName());
+                $ps = explode($ds, $reflectionClass->getFileName());
                 array_pop($ps);
-                $implPath = join('/', $ps) . '/' . $scanImplPath;
+                $implPath = join($ds, $ps) . $ds . $scanImplPath;
                 if (!is_dir($implPath))
                     return null;
 
@@ -334,7 +336,7 @@ class InjectionAnnotation
                         continue;
                     if (!empty($property->qualifier) && $file != $property->qualifier)
                         continue;
-                    $classFile = "{$implPath}/{$file}";
+                    $classFile = "{$implPath}{$ds}{$file}";
                     if (!is_file($classFile))
                         continue;
                     $fileName = substr($file, 0, strpos($file, '.php'));
@@ -353,8 +355,8 @@ class InjectionAnnotation
                                     'implementClass' => $implementClass,
                                     'mtime' => filemtime($implementClassFile),
                                 ];
-                                if (!is_dir($path . '/maps'))
-                                    mkdir($path . '/maps', 0755, true);
+                                if (!is_dir($path . $ds . 'maps'))
+                                    mkdir($path . $ds . 'maps', 0755, true);
                                 file_put_contents($proxyMapFile, "<?php\r\nreturn " . var_export($implementCache, true) . ';');
                                 $locker->unlock();
                             }
@@ -372,10 +374,10 @@ class InjectionAnnotation
 
         $path = $path ?: Annotation::getAnnotationPath('proxies', $config);
         $mtime = filemtime($implementClassFile);
-        $path .= "/implements";
+        $path .= "{$ds}implements";
         if (!is_dir($path))
             mkdir($path, 0755, true);
-        $proxyFile = "{$path}/{$implementClassName}.php";
+        $proxyFile = "{$path}{$ds}{$implementClassName}.php";
         $hasFile = is_file($proxyFile);
 
         if ($hasFile && filemtime($proxyFile) >= $mtime) {
