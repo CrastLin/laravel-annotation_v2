@@ -14,7 +14,7 @@
 
 ### 1.2. 安装依赖包
 ````shell
-composer require crastlin/laravel-annotation_v2:v1.1.9-alpha
+composer require crastlin/laravel-annotation_v2:v1.2.0
 ```` 
 > Tips: 也可以在composer.json的 require内定义：`"crastlin/laravel-annotation_v2": "^v1.1.9-alpha"`
 
