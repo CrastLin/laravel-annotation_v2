@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace Crastlin\LaravelAnnotation\Utils\Traits;
 
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
-use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Input\All;
 use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 use Crastlin\LaravelAnnotation\Extra\ResponseCodeEnum;
+use Crastlin\LaravelAnnotation\Extra\RuntimeException;
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use ReflectionClass;
 
@@ -22,13 +22,19 @@ trait InvokeTrait
 
     protected ResponseCodeEnum $resCode = ResponseCode::PARAMETER_ERROR;
 
-    protected string $errText = '', $notice = '';
+    protected string $errText = '';
+    protected string $notice = 'success';
 
     protected array $result = [];
 
     function getResCode(): int
     {
         return $this->resCode->value;
+    }
+
+    function getRawResCode(): ResponseCodeEnum
+    {
+        return $this->resCode;
     }
 
     function getError(): string
@@ -48,7 +54,11 @@ trait InvokeTrait
 
     function getResponse(): array
     {
-        return ['code' => $this->resCode->value, 'msg' => $this->errText, 'data' => $this->result];
+        return [
+            'code' => $this->resCode->value,
+            'msg' => $this->resCode == ResponseCode::SUCCESS ? $this->notice : $this->errText,
+            'data' => $this->result ?: new \stdClass(),
+        ];
     }
 
     static function newInstanceByParent(string $name = '', ...$params): static
@@ -58,7 +68,7 @@ trait InvokeTrait
         $baseNameSpace = join('\\', $baseNameSpace);
         $name = $name ? (str_contains($name, '\\') ? $name : $baseNameSpace . '\\' . $name) : static::class;
         if (!class_exists($name))
-            throw new AnnotationException("class: {$name} is not exists", 601);
+            throw new RuntimeException("class: {$name} is not exists", 601);
         $reflectClass = Injection::exists("reflect.{$name}") ? Injection::take("reflect.{$name}") : new ReflectionClass($name);
         // inject constructor
         if ($constructor = $reflectClass->getConstructor())
@@ -78,11 +88,11 @@ trait InvokeTrait
     {
         $class = static::class;
         if (!method_exists($this, $method))
-            throw new \Exception("Class {$class}::{$method} is not exists");
+            throw new RuntimeException("Class {$class}::{$method} is not exists");
         $this->reflectClass = Injection::exists("reflect.{$class}") ? Injection::take("reflect.{$class}") : new \ReflectionClass($class);;
         $ref = $this->reflectClass->getMethod($method);
         if (!$ref || !$ref->isPublic() || $ref->isAbstract())
-            throw new \Exception("Class {$class}::{$method} Cannot be accessed");
+            throw new RuntimeException("Class {$class}::{$method} Cannot be accessed");
         $turnBack = Annotation::handleInvokeAnnotation($class, $ref, $this->data, $arguments);
         if ($turnBack->code != ResponseCode::SUCCESS) {
             $this->resCode = $turnBack->code;

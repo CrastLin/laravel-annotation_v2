@@ -21,7 +21,7 @@ class BaseController extends Controller
     protected Request $request;
 
     #[Inject]
-    protected array $params;
+    protected array $params = [];
 
     public function __construct(Request $request)
     {
@@ -31,7 +31,6 @@ class BaseController extends Controller
 
     function _initialize()
     {
-        // todo
     }
 
     protected function _before()

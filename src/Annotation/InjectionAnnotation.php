@@ -306,7 +306,6 @@ class InjectionAnnotation
             $ff = join('_', $interfacePathList);
             $proxyMapFile = "{$path}{$ds}maps{$ds}{$ff}_{$fe}.php";
             $implementCache = is_file($proxyMapFile) ? require $proxyMapFile : [];
-            $implementCache = [];
             $ref = null;
             if (!empty($implementCache['implementClass'])) {
                 $ref = $this->getReflectClass($implementCache['implementClass']);
@@ -411,11 +410,22 @@ class InjectionAnnotation
             $parameterContentList = [];
             $putParametersContentList = [];
             foreach ($parameters as $parameter) {
-                $parameterContent = '$' . $parameter->getName();
-                $putParametersContent = $parameterContent;
+                // Obtain the parameter type
+                $typeString = '';
+                if ($parameter->hasType()) {
+                    $type = $parameter->getType();
+                    // Get whether the type allows null values
+                    $typeString = $type->allowsNull() ? "?{$type->getName()} " : "{$type->getName()} ";
+                }
+                // Get whether the parameter is a reference
+                $reference = $parameter->isPassedByReference() ? '&' : '';
+                // assembly parameters
+                $baseParameter = '$' . $parameter->getName();
+                $parameterContent = $typeString . $reference . $baseParameter;
+                $putParametersContent = $baseParameter;
                 if ($parameter->isDefaultValueAvailable()) {
                     $value = $parameter->getDefaultValue();
-                    $valueStr = is_null($value) ? 'null' : ($value == '' ? "''" : $value);
+                    $valueStr = is_null($value) ? 'null' : $value;
                     $parameterContent .= ' = ' . var_export($valueStr, true);
                 }
                 $parameterContentList[] = $parameterContent;
@@ -423,12 +433,18 @@ class InjectionAnnotation
             }
             $parameterContent = join(', ', $parameterContentList);
             $methodName = $method->getName();
-            $returnType = $method->hasReturnType() ? ' : ' . $method->getReturnType()->getName() : '';
-            $putParametersContent = !empty($putParametersContentList) ? ', ' . join(', ', $putParametersContentList) . '' : '';
-            $methodContent .= "function {$methodName}({$parameterContent}){$returnType}\r\n{\r\nreturn {$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}";
+            // Get return type
+            $returnType = '';
+            if ($method->hasReturnType()) {
+                $type = $method->getReturnType();
+                $returnType = " : " . ($type->allowsNull() ? "?{$type->getName()}" : "{$type->getName()}");
+            }
+            // Generate invoke call parameters
+            $putParametersContent = !empty($putParametersContentList) ? ', ' . join(', ', $putParametersContentList) : '';
+            // Generate anonymous proxy method
+            $methodContent .= "function {$methodName}({$parameterContent}){$returnType}\r\n{\r\n  return {$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}\r\n";
         }
         $implementClassVar = '$implementClass';
-        $thisImplementClassVar = '$this->implementClass';
         $implementInstanceVar = '$implementInstance';
         $reflectClassVar = '$reflectClass';
         $thisImplementInstance = '$this->implementInstance';
@@ -468,7 +484,7 @@ function __call(string {$method}, array {$arguments})
 php;
 
         file_put_contents($proxyFile, $proxyFileContent);
-        $object = require $proxyFile;;
+        $object = require $proxyFile;
         $locker->unlock();
         return $object;
     }
