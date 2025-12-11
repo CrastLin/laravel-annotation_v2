@@ -425,8 +425,7 @@ class InjectionAnnotation
                 $putParametersContent = $baseParameter;
                 if ($parameter->isDefaultValueAvailable()) {
                     $value = $parameter->getDefaultValue();
-                    $valueStr = is_null($value) ? 'null' : $value;
-                    $parameterContent .= ' = ' . var_export($valueStr, true);
+                    $parameterContent .= ' = ' . var_export($value, true);
                 }
                 $parameterContentList[] = $parameterContent;
                 $putParametersContentList[] = $putParametersContent;
