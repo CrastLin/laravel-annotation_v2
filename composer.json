@@ -1,7 +1,7 @@
 {
     "name": "crastlin/laravel-annotation_v2",
     "description": "The implemented annotations include routing, permission menu, concurrency lock, validator, and dependency injection",
-    "version": "1.2.0",
+    "version": "v1.2.1",
     "type": "library",
     "license": "MIT",
     "authors": [
