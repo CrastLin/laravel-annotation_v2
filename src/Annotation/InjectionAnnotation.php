@@ -434,14 +434,17 @@ class InjectionAnnotation
             $methodName = $method->getName();
             // Get return type
             $returnType = '';
+            $returnValue = '';
             if ($method->hasReturnType()) {
                 $type = $method->getReturnType();
-                $returnType = " : " . ($type->allowsNull() ? "?{$type->getName()}" : "{$type->getName()}");
+                $typeName = $type->getName();
+                $returnType = " : " . ($type->allowsNull() ? "?{$typeName}" : "{$typeName}");
+                $returnValue = $typeName == 'void' ? '' : 'return ';
             }
             // Generate invoke call parameters
             $putParametersContent = !empty($putParametersContentList) ? ', ' . join(', ', $putParametersContentList) : '';
             // Generate anonymous proxy method
-            $methodContent .= "function {$methodName}({$parameterContent}){$returnType}\r\n{\r\n  return {$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}\r\n";
+            $methodContent .= "function {$methodName}({$parameterContent}){$returnType}\r\n{\r\n  {$returnValue}{$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}\r\n";
         }
         $implementClassVar = '$implementClass';
         $implementInstanceVar = '$implementInstance';
