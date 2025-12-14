@@ -356,7 +356,8 @@ class RouteAnnotation extends Annotation
             }
             if (!empty($group->prefix)) {
                 $prefix = rtrim($group->prefix, '/');
-                $prefixes[] = $prefix;
+                if (empty($prefixes) || !in_array($prefix, $prefixes))
+                    $prefixes[] = $prefix;
                 $routeContent .= "prefix('{$prefix}')\r\n->";
             }
             if (!empty($group->middleware)) {
