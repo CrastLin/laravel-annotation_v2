@@ -160,13 +160,12 @@ class NodeAnnotation extends Annotation
                 try {
                     [$tree, $path, $module] = [$item['data'], $item['path'], $item['module']];
                     if (!empty($tree->virtualNode)) {
-                        GeneratorStoreTable::store($tree, $module, $tree->ct);
-                        echo "+- <Tree> [SUCCESS] [{$tree->name}] {$module}/{$tree->ct}/{$tree->virtualNode} </Tree>" . PHP_EOL;
+                        if (GeneratorStoreTable::store($tree, $module, $tree->ct))
+                            echo "+- <Tree> [SUCCESS] [{$tree->name}] {$module}/{$tree->ct}/{$tree->virtualNode} </Tree>" . PHP_EOL;
                     }
                     foreach ($tree->nodeList as $node) {
-
-                        GeneratorStoreTable::store($node, $module, $tree->ct);
-                        echo "+--- <Node> [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} </Node>" . PHP_EOL;
+                        if (GeneratorStoreTable::store($node, $module, $tree->ct))
+                            echo "+--- <Node> [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} </Node>" . PHP_EOL;
                     }
                 } catch (\Throwable $exception) {
                     if (!$exception instanceof AnnotationException || $exception->getCode() < 600)
