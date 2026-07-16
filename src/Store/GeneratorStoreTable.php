@@ -38,6 +38,9 @@ class GeneratorStoreTable
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='node and Permissions data';";
 
 
+    static protected array $nodeConfig = [];
+
+
     static function builder(string $table, string $connection): string
     {
         try {
@@ -50,12 +53,15 @@ class GeneratorStoreTable
 
     static function nodeById(int $id = 0): NodeModel
     {
-        return $id > 0 ? NodeModel::find($id) : new NodeModel();
+        $node = new NodeModel();
+        $md = $node->setConnection(self::$nodeConfig['connection'])->setTable(self::$nodeConfig['table']);
+        return $id > 0 ? $md->find($id) : $node;
     }
 
     static function node(string $module, string $controller, string $action): ?NodeModel
     {
-        return NodeModel::where(['module' => $module, 'controller' => $controller, 'action' => $action])->first();
+        $node = new NodeModel();
+        return $node->setConnection(self::$nodeConfig['connection'])->setTable(self::$nodeConfig['table'])->where(['module' => $module, 'controller' => $controller, 'action' => $action])->first();
     }
 
     static function store(\stdClass $std, string $module, string $controller): void
@@ -63,6 +69,9 @@ class GeneratorStoreTable
         $isTree = !empty($std->virtualNode);
         $action = $std->action ?? ($isTree ? $std->virtualNode : '');
         $parentId = 0;
+        if (empty(self::$nodeConfig))
+            self::$nodeConfig = config('annotation.node');
+
         if (!empty($std->parent)) {
             $split = explode('/', $std->parent);
             $parent = self::node($split[0], $split[1], $split[2]);
