@@ -27,6 +27,8 @@ trait InvokeTrait
 
     protected array $result = [];
 
+    protected string $requestId = '';
+
     function getResCode(): int
     {
         return $this->resCode->value;
@@ -58,6 +60,7 @@ trait InvokeTrait
             'code' => $this->resCode->value,
             'msg' => $this->resCode == ResponseCode::SUCCESS ? $this->notice : $this->errText,
             'data' => $this->result ?: new \stdClass(),
+            'requestId' => $this->requestId ?: '',
         ];
     }
 
@@ -83,6 +86,20 @@ trait InvokeTrait
         return static::newInstanceByParent('', ...$params);
     }
 
+    function init(): void
+    {
+        
+    }
+
+    function invokeBefore(): void
+    {
+
+    }
+
+    function invokeAfter(): void
+    {
+
+    }
 
     public function __invoke(string $method, ...$arguments)
     {
@@ -93,12 +110,16 @@ trait InvokeTrait
         $ref = $this->reflectClass->getMethod($method);
         if (!$ref || !$ref->isPublic() || $ref->isAbstract())
             throw new RuntimeException("Class {$class}::{$method} Cannot be accessed");
+        $this->init();
         $turnBack = Annotation::handleInvokeAnnotation($class, $ref, $this->data, $arguments);
         if ($turnBack->code != ResponseCode::SUCCESS) {
             $this->resCode = $turnBack->code;
             $this->errText = $turnBack->message;
             return false;
         }
-        return call_user_func([$this, $method], ...$arguments);
+        $this->invokeBefore();
+        $result = call_user_func([$this, $method], ...$arguments);
+        $this->invokeAfter();
+        return $result;
     }
 }
