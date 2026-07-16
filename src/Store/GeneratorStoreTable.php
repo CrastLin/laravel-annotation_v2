@@ -64,7 +64,7 @@ class GeneratorStoreTable
         return $node->setConnection(self::$nodeConfig['connection'])->setTable(self::$nodeConfig['table'])->where(['module' => $module, 'controller' => $controller, 'action' => $action])->first();
     }
 
-    static function store(\stdClass $std, string $module, string $controller): void
+    static function store(\stdClass $std, string $module, string $controller): bool
     {
         $isTree = !empty($std->virtualNode);
         $action = $std->action ?? ($isTree ? $std->virtualNode : '');
@@ -102,7 +102,9 @@ class GeneratorStoreTable
         if (!$isTree) {
             $node->code = $std->code->value;
         }
-        $node->save();
+        $dict = $node->getDirty();
+        $dict && $node->save();
+        return !empty($dict);
     }
 
 
