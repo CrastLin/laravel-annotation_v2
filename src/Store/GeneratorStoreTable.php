@@ -10,24 +10,24 @@ class GeneratorStoreTable
 {
 
     static string $generator = "CREATE TABLE IF NOT EXISTS `<tableName>` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `parent_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'parent id',
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `parent_id` int unsigned NOT NULL DEFAULT '0' COMMENT 'parent id',
   `name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu name',
-  `auth` tinyint(1) unsigned NULL DEFAULT '1' COMMENT 'need to verify permissions status',
-  `menu` tinyint(1) unsigned NULL DEFAULT '0' COMMENT 'Whether to display as a menu',
+  `auth` tinyint unsigned DEFAULT '1' COMMENT 'need to verify permissions status',
+  `menu` tinyint unsigned DEFAULT '0' COMMENT 'Whether to display as a menu',
   `sort` float NOT NULL DEFAULT '10000' COMMENT 'Sort Number',
-  `module` varchar(40) NOT NULL DEFAULT '' COMMENT 'Application name, controller root directory, subordinate directory',
-  `controller` varchar(30) NOT NULL DEFAULT '' COMMENT 'Controller name (excluding controller suffix) is case sensitive',
-  `action` varchar(30) NOT NULL DEFAULT '' COMMENT 'Controller Method Name',
-  `rule` varchar(100) DEFAULT NULL COMMENT 'Validation rules',
-  `param` varchar(50) NOT NULL DEFAULT '' COMMENT 'Verify additional parameters',
-  `icon` varchar(20) NOT NULL DEFAULT '' COMMENT 'Icons displayed in the menu',
+  `module` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Application name, controller root directory, subordinate directory',
+  `controller` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Controller name (excluding controller suffix) is case sensitive',
+  `action` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Controller Method Name',
+  `rule` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Validation rules',
+  `param` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Verify additional parameters',
+  `icon` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Icons displayed in the menu',
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'NodeAnnotation remarks',
-  `path` varchar(50) DEFAULT NULL COMMENT 'Configure front-end associated routing page',
-  `component` varchar(50) DEFAULT NULL COMMENT 'Configure front-end associated component names',
-  `code` varchar(30) DEFAULT NULL COMMENT 'Custom interface classification',
-  `is_deleted` tinyint(1) unsigned NULL DEFAULT '0' COMMENT 'is deleted status',
-  `is_ignored` tinyint(1) unsigned NULL DEFAULT '0' COMMENT 'is ignored status',
+  `path` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Configure front-end associated routing page',
+  `component` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Configure front-end associated component names',
+  `code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Custom interface classification',
+  `is_deleted` tinyint unsigned DEFAULT '0' COMMENT 'is deleted status',
+  `is_ignored` tinyint unsigned DEFAULT '0' COMMENT 'is ignored status',
   `created_at` datetime DEFAULT NULL COMMENT 'create time',
   `updated_at` datetime DEFAULT NULL COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE,
@@ -35,8 +35,7 @@ class GeneratorStoreTable
   KEY `parent_id` (`parent_id`) USING BTREE,
   KEY `code` (`code`) USING BTREE,
   KEY `rule` (`rule`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='node and Permissions data';";
-
+) ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='node and Permissions data';";
 
     static protected array $nodeConfig = [];
 

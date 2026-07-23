@@ -5,6 +5,7 @@ namespace Crastlin\LaravelAnnotation\Utils\Traits;
 
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Input\All;
+use Crastlin\LaravelAnnotation\Enum\InjectionEnum;
 use Crastlin\LaravelAnnotation\Extra\ResponseCode;
 use Crastlin\LaravelAnnotation\Extra\ResponseCodeEnum;
 use Crastlin\LaravelAnnotation\Extra\RuntimeException;
@@ -28,6 +29,8 @@ trait InvokeTrait
     protected array $result = [];
 
     protected string $requestId = '';
+
+    protected int $attributeSerialNum = 0;
 
     function getResCode(): int
     {
@@ -58,7 +61,7 @@ trait InvokeTrait
     {
         return [
             'code' => $this->resCode->value,
-            'msg' => $this->resCode == ResponseCode::SUCCESS ? $this->notice : $this->errText,
+            'msg' => in_array($this->resCode, [ResponseCode::SUCCESS, ResponseCode::PASSED]) ? $this->notice : $this->errText,
             'data' => $this->result ?: new \stdClass(),
             'requestId' => $this->requestId ?: '',
         ];
@@ -88,7 +91,7 @@ trait InvokeTrait
 
     function init(): void
     {
-        
+
     }
 
     function invokeBefore(): void
@@ -111,6 +114,11 @@ trait InvokeTrait
         if (!$ref || !$ref->isPublic() || $ref->isAbstract())
             throw new RuntimeException("Class {$class}::{$method} Cannot be accessed");
         $this->init();
+        $currentAnnotationSerial = Injection::getAttributeSerialNum();
+        if ($this->attributeSerialNum > 0 && $this->attributeSerialNum != $currentAnnotationSerial)
+            Injection::injectWithObject($this, $this->reflectClass, InjectionEnum::PROPERTY);
+        $this->attributeSerialNum = $currentAnnotationSerial;
+
         $turnBack = Annotation::handleInvokeAnnotation($class, $ref, $this->data, $arguments);
         if ($turnBack->code != ResponseCode::SUCCESS) {
             $this->resCode = $turnBack->code;

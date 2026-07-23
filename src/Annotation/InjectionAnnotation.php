@@ -11,6 +11,7 @@ use Crastlin\LaravelAnnotation\Annotation\Attributes\Qualifier;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Service;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Value;
 use Crastlin\LaravelAnnotation\Utils\Sync;
+use Crastlin\LaravelAnnotation\Enum\InjectionEnum;
 
 /**
  * @package Inject
@@ -24,90 +25,225 @@ use Crastlin\LaravelAnnotation\Utils\Sync;
  */
 class InjectionAnnotation
 {
-    static InjectionAnnotation $inject;
-
     /**
      * @var array $attributes inject container
      */
     protected array $attributes = [];
 
-    protected array $injectAttributeObjectMap = [];
+    /**
+     * When submitting an injection, the serial number is incremented automatically
+     * @var int $setAttributeSerialNum
+     */
+    protected int $setAttributeSerialNum = 0;
 
+    /**
+     * Update the serial number of the marked binding data
+     * @return void
+     */
+    protected function incrAttributeSerialNum(): void
+    {
+        $this->setAttributeSerialNum++;
+    }
 
+    /**
+     * Bind dependency injection data
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
     function bind(string $name, mixed $value): void
     {
         $this->attributes[$name] = $value;
+        $this->incrAttributeSerialNum();
     }
 
+
+    /**
+     * set the already bound dependency injection data when it's array type
+     * @param string $name
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    function hSet(string $name, string $key, mixed $value): void
+    {
+        $data = $this->take($name);
+        if (!is_array($data))
+            return;
+        $data[$key] = $value;
+        $this->attributes[$name] = $data;
+        $this->incrAttributeSerialNum();
+    }
+
+    /**
+     * Append the already bound dependency injection data
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
+    function append(string $name, mixed $value): void
+    {
+        $data = $this->take($name);
+        if (!is_array($data))
+            return;
+        $this->attributes[$name][] = $value;
+        $this->incrAttributeSerialNum();
+    }
+
+    /**
+     * Set dependency injection data
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
     function offsetSet(string $name, mixed $value): void
     {
         $this->bind($name, $value);
     }
 
+    /**
+     * Bind data and refresh dependency injection
+     * @param object $object
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
     function bindAndRefresh(object $object, string $name, mixed $value): void
     {
         $this->bind($name, $value);
         $this->injectWithObject($object);
     }
 
+    /**
+     * Merge or overwrite the bound data
+     * @param array $attributes
+     * @param bool $recover
+     * @return void
+     */
     function into(array $attributes, bool $recover = false): void
     {
         $this->attributes = $recover ? $attributes : array_merge($this->attributes, $attributes);
+        $this->incrAttributeSerialNum();
     }
 
+    /**
+     * Merge or overwrite all bound data
+     * @param array $attributes
+     * @param bool $recover
+     * @return void
+     */
     function bindAll(array $attributes, bool $recover = false): void
     {
         $this->into($attributes, $recover);
     }
 
+    /**
+     * get binding data
+     * @param string $name
+     * @return mixed
+     */
     function take(string $name): mixed
     {
         return $this->attributes[$name] ?? null;
     }
 
+    /**
+     * get binding data
+     * @param string $name
+     * @return mixed
+     */
     function offsetGet(string $name): mixed
     {
         return $this->take($name);
     }
 
 
+    /**
+     * Retrieve all bound data
+     * @return array|null
+     */
     function takeAll(): ?array
     {
         return $this->attributes;
     }
 
+    /**
+     * Clear all bound data
+     * @return void
+     */
     function clearAll(): void
     {
         $this->attributes = [];
+        $this->setAttributeSerialNum = 0;
     }
 
+    /**
+     * Obtain the binding data in JSON format
+     * @return string|null
+     */
     function takeAllToJson(): ?string
     {
         return json_encode($this->takeAll(), 256);
     }
 
+    /**
+     * unbind assign data
+     * @param string $name
+     * @return void
+     */
     function unbind(string $name): void
     {
-        if ($this->offsetExists($name))
+        if ($this->exists($name)) {
             unset($this->attributes[$name]);
+            $this->incrAttributeSerialNum();
+        }
     }
 
+    /**
+     * unbind assign data
+     * @param string $name
+     * @return void
+     */
     function offsetUnset(string $name): void
     {
         $this->unbind($name);
     }
 
+    /**
+     * Check whether the bound data exists
+     * @param string $name
+     * @return bool
+     */
     function exists(string $name): bool
     {
         return isset($this->attributes[$name]);
     }
 
+    /**
+     * Check whether the bound data exists
+     * @param string $name
+     * @return bool
+     */
     function offsetExists(string $name): bool
     {
         return $this->exists($name);
     }
 
+    /**
+     * get the data binding serial number
+     * @return int
+     */
+    function getAttributeSerialNum(): int
+    {
+        return $this->setAttributeSerialNum;
+    }
 
+    /**
+     * get a class-reflection object
+     * @param string $class
+     * @return \ReflectionClass|null
+     * @throws \ReflectionException
+     */
     function getReflectClass(string $class): ?\ReflectionClass
     {
         $field = "reflect.{$class}";
@@ -197,7 +333,11 @@ class InjectionAnnotation
     }
 
 
-    // parse annotation by reflect docComment
+    /**
+     * Parse annotation by reflect docComment
+     * @param \ReflectionClass $reflectionClass
+     * @return array
+     */
     protected function parseAnnotationByReflect(\ReflectionClass $reflectionClass): array
     {
         $targetList = [$reflectionClass->getProperties(), $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC)];
@@ -235,13 +375,16 @@ class InjectionAnnotation
                     }
                 }
                 $typeof = null;
+                $allowNull = false;
                 if ($key == 'properties') {
                     if (!isset($maps['public_properties']))
                         $maps['public_properties'] = [];
                     if ($target->isPublic())
                         $maps['public_properties'][] = $target->getName();
                     $propertyType = $target->getType();
-                    $typeof = $propertyType instanceof \ReflectionNamedType && !$propertyType->isBuiltin() ? $propertyType->getName() : null;
+                    $typeof = $propertyType->getName();
+                    $allowNull = $propertyType->allowsNull();
+//                    $typeof = $propertyType instanceof \ReflectionNamedType && !$propertyType->isBuiltin() ? $propertyType->getName() : null;
                 }
 
                 $map = new \stdClass();
@@ -249,6 +392,7 @@ class InjectionAnnotation
                 $map->annotation = $attribute->getName();
                 $attr = $attribute->newInstance();
                 $map->name = $attr->name ?? '';
+                $map->allowsNull = $allowNull;
                 $map->parameters = $attr->parameters ?? [];
                 if ($attribute->getName() == Input\All::class)
                     $map->keys = $attr->keys ?? [];
@@ -258,17 +402,6 @@ class InjectionAnnotation
             }
         }
         return $maps;
-    }
-
-
-    // When binding a dependent object, synchronously update the objects that have already been bound to that object
-    protected function refreshAllObject(string $bindName): void
-    {
-        if (empty($this->injectAttributeObjectMap) || !array_key_exists($bindName, $this->injectAttributeObjectMap))
-            return;
-        foreach ($this->injectAttributeObjectMap[$bindName] as $class) {
-            $this->injectWithClass($class, true);
-        }
     }
 
 
@@ -434,17 +567,14 @@ class InjectionAnnotation
             $methodName = $method->getName();
             // Get return type
             $returnType = '';
-            $returnValue = '';
             if ($method->hasReturnType()) {
                 $type = $method->getReturnType();
-                $typeName = $type->getName();
-                $returnType = " : " . ($type->allowsNull() ? "?{$typeName}" : "{$typeName}");
-                $returnValue = $typeName == 'void' ? '' : 'return ';
+                $returnType = " : " . ($type->allowsNull() ? "?{$type->getName()}" : "{$type->getName()}");
             }
             // Generate invoke call parameters
             $putParametersContent = !empty($putParametersContentList) ? ', ' . join(', ', $putParametersContentList) : '';
             // Generate anonymous proxy method
-            $methodContent .= "function {$methodName}({$parameterContent}){$returnType}\r\n{\r\n  {$returnValue}{$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}\r\n";
+            $methodContent .= "function {$methodName}({$parameterContent}){$returnType}\r\n{\r\n  return {$getInstanceVar}('{$methodName}'{$putParametersContent});\r\n}\r\n";
         }
         $implementClassVar = '$implementClass';
         $implementInstanceVar = '$implementInstance';
@@ -499,7 +629,7 @@ php;
      * @return mixed
      * @throws \Throwable
      */
-    function getInjectTypeofValue(string $class, \stdClass $property, bool $bindInjectMap = true): mixed
+    function getInjectTypeofValue(string $class, \stdClass $property): mixed
     {
         if (!empty($property->annotation) && (in_array($property->annotation, [Value::class, Env::class]) || str_starts_with($property->annotation, __NAMESPACE__ . '\\Attributes\\Input'))) {
             switch ($property->annotation) {
@@ -555,7 +685,7 @@ php;
                     $this->bind($bindName, $value);
                 } else {
                     if (!$ref->isInstantiable())
-                        throw new \Exception("Class {$class} <- {$injectClass} is cannot be initialized");
+                        throw new AnnotationException("Class {$class} <- {$injectClass} is cannot be initialized");
 
                     $constructor = $ref->getConstructor();
                     $property->parameters = $property->parameters ?? [];
@@ -570,7 +700,7 @@ php;
         } else {
             $bindName = !empty($property->name) ? $property->name : $property->target;
             if (isset($property->defaultValue))
-                $default = isset($property->defaultValue);
+                $default = $property->defaultValue;
             else {
                 $default = match ($property->typeof) {
                     "string" => '',
@@ -586,13 +716,6 @@ php;
                 $value = request()->input($bindName, $default);
             }
         }
-
-        if ($bindInjectMap) {
-            if (!array_key_exists($bindName, $this->injectAttributeObjectMap))
-                $this->injectAttributeObjectMap[$bindName] = [];
-            if (!in_array($class, $this->injectAttributeObjectMap[$bindName]))
-                $this->injectAttributeObjectMap[$bindName][] = $class;
-        }
         return $value;
     }
 
@@ -604,9 +727,9 @@ php;
         $std->target = $parameter->getName();
         $std->name = !empty($annotation->name) ? $annotation->name : '';
         $std->parameters = !empty($annotation->parameters) ? $annotation->parameters : [];
-        $std->typeof = $parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin() ? $parameterType->getName() : null;
+        $std->typeof = $parameterType->getName();//$parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin() ? $parameterType->getName() : null;
         $std->defaultValue = $parameter->getDefaultValue();
-        return $this->getInjectTypeofValue($action, $std, false);
+        return $this->getInjectTypeofValue($action, $std);
     }
 
     /**
@@ -617,7 +740,7 @@ php;
      * @throws \ReflectionException
      * @throws \Throwable
      */
-    function autoInject(string $class, &$object = null, ?\ReflectionClass $reflect = null): void
+    function autoInject(string $class, &$object = null, ?\ReflectionClass $reflect = null, InjectionEnum $injectType = InjectionEnum::ALL): void
     {
         if (!$reflect) {
             $reflect = $this->getReflectClass($class);
@@ -630,11 +753,34 @@ php;
         $propertiesCache = $this->getInjectInformation($reflect);
 
         // inject all properties
-        if (!empty($propertiesCache['properties'])) {
+        if (in_array($injectType, [InjectionEnum::PROPERTY, InjectionEnum::ALL]) && !empty($propertiesCache['properties'])) {
             foreach ($propertiesCache['properties'] as $property) {
                 $propertyName = $property->target;
                 $value = $this->getInjectTypeofValue($class, $property);
                 $propertySetter = 'set' . ucfirst($propertyName);
+                $valueTypeOf = gettype($value);
+                $conf = config('annotation.inject');
+                $needChangeType = !empty($conf['auto_conversion_type']);
+
+                if (($needChangeType && $valueTypeOf != $property->typeof) || (is_null($value) && !$property->allowsNull)) {
+                    switch ($property->typeof) {
+                        case 'string':
+                            $value = in_array($valueTypeOf, ['int', 'float']) ? strval($value) : '';
+                            break;
+                        case 'int':
+                            $value = in_array($valueTypeOf, ['string', 'float', 'bool']) ? intval($value) : 0;
+                            break;
+                        case 'float':
+                            $value = in_array($valueTypeOf, ['string', 'int', 'bool']) ? floatval($value) : 0.0;
+                            break;
+                        case 'bool':
+                            $value = in_array($valueTypeOf, ['string', 'int', 'bool']) ? true : false;
+                            break;
+                        case 'array':
+                            $value = is_array($value) ? $value : [];
+                            break;
+                    }
+                }
                 if ($propertySetMethodType) {
                     switch ($propertySetMethodType) {
                         // using setProperty action
@@ -664,7 +810,7 @@ php;
         }
 
         // inject all methods
-        if (!empty($propertiesCache['methods'])) {
+        if (in_array($injectType, [InjectionEnum::METHOD, InjectionEnum::ALL]) && !empty($propertiesCache['methods'])) {
             foreach ($propertiesCache['methods'] as $method) {
                 $ref = $reflect->getMethod($method->target);
                 $arguments = [];
@@ -675,13 +821,13 @@ php;
     }
 
     // inject by object
-    function injectWithObject($object, ?\ReflectionClass $reflectionClass = null): void
+    function injectWithObject($object, ?\ReflectionClass $reflectionClass = null, InjectionEnum $injectType = InjectionEnum::ALL): void
     {
-        $this->autoInject(get_class($object), $object, $reflectionClass);
+        $this->autoInject(get_class($object), $object, $reflectionClass, $injectType);
     }
 
     // inject by class namesapce
-    function injectWithClass(string $class, bool $ignoreNotExists = false)
+    function injectWithClass(string $class, InjectionEnum $injectType = InjectionEnum::ALL, bool $ignoreNotExists = false)
     {
         if (!class_exists($class)) {
             if ($ignoreNotExists)
@@ -689,7 +835,7 @@ php;
             throw new \Exception("Class {$class} is not exists");
         }
         $object = null;
-        $this->autoInject($class, $object);
+        $this->autoInject($class, $object, null, $injectType);
         return $object;
     }
 

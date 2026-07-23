@@ -3,13 +3,16 @@ declare(strict_types=1);
 
 namespace Crastlin\LaravelAnnotation\Facades;
 
+use Crastlin\LaravelAnnotation\Enum\InjectionEnum;
 use Illuminate\Support\Facades\Facade;
 use Crastlin\LaravelAnnotation\Annotation\InjectionAnnotation;
 
 /**
  * @package Inject
  * @mixin InjectionAnnotation
- * @method static void bind(string $name, $value)
+ * @method static void bind(string $name, mixed $value)
+ * @method static void hSet(string $name, string $key, mixed $value)
+ * @method static void append(string $name, mixed $value): void
  * @method static void bindAndRefresh(object $object, string $name, mixed $value)
  * @method static void offsetSet(string $name, $value)
  * @method static void bindAll(array $attributes, bool $recover = false)
@@ -23,8 +26,9 @@ use Crastlin\LaravelAnnotation\Annotation\InjectionAnnotation;
  * @method static void unbind(string $name)
  * @method static void offsetUnset(string $name)
  * @method static bool exists(string $name)
+ * @method static int getAttributeSerialNum()
  * @method static bool offsetExists(string $name)
- * @method static void injectWithObject($instance, ?\ReflectionClass $reflectionClass = null)
+ * @method static void injectWithObject($instance, ?\ReflectionClass $reflectionClass = null, InjectionEnum $injectType = InjectionEnum::ALL)
  * @method static object injectWithClass(string $class)
  * @method static mixed getInjectTypeofValue(string $class, \stdClass $property, bool $bindInjectMap = true)
  * @method static \ReflectionClass getReflectClass(string $class)

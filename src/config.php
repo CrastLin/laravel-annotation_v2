@@ -172,6 +172,9 @@ return [
         // Scan the directory name of the implementation layer
         // located within the interface layer directory
         'impl_path' => 'Impl',
+        // In dependency injection, is type conversion automatic
+        // If it is a convertible type, then it will be automatically cast. Otherwise, the default null value of that type will be returned
+        'auto_conversion_type' => false,
     ],
     /*
      |--------------------------------------------------------------------------
