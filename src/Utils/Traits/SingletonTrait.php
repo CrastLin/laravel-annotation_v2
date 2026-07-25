@@ -12,10 +12,6 @@ use ReflectionClass;
 
 trait SingletonTrait
 {
-    /**
-     * @var static[] $singleton
-     */
-    protected static array $singleton;
 
     /**
      * get singleton instance
@@ -29,44 +25,37 @@ trait SingletonTrait
         array_pop($baseNameSpace);
         $baseNameSpace = join('\\', $baseNameSpace);
         $name = $name ? (str_contains($name, '\\') ? $name : $baseNameSpace . '\\' . $name) : static::class;
-        $key = md5("{$name}_" . serialize($params));
+        $key = "singleton.{$name}_" . md5(serialize($params));
         $reflectClass = Injection::exists("reflect.{$name}") ? Injection::take("reflect.{$name}") : null;
-        if (!isset(self::$singleton[$key])) {
+        $instance = Injection::exists($key) ? Injection::take($key) : null;
+        if (!$instance) {
             if (!class_exists($name))
                 throw new AnnotationException("class: {$name} is not exists", 407);
             // inject constructor
             $reflectClass = $reflectClass ?: new ReflectionClass($name);
             if ($constructor = $reflectClass->getConstructor())
                 Annotation::handleInvokeAnnotation($name, $constructor, [], $params, true, true);
-            self::$singleton[$key] = new $name(...$params);
+            $instance = new $name(...$params);
         }
-        if (!self::$singleton[$key] instanceof static)
+        if (!$instance instanceof static)
             throw new AnnotationException("sub class: {$name} must instanceof " . static::class, 408);
-        if (method_exists(self::$singleton[$key], 'init')) {
+        if (method_exists($instance, 'init')) {
             if ($reflectClass) {
                 // inject init method
                 if ($method = $reflectClass->getMethod('init'))
                     Annotation::handleInvokeAnnotation($name, $method, [], $params, true, true);
             }
-            self::$singleton[$key]->init(...$params);
+            $instance->init(...$params);
         }
         // auto inject all properties
-        Injection::injectWithObject(self::$singleton[$key], $reflectClass);
-        return self::$singleton[$key];
+        Injection::injectWithObject($instance, $reflectClass);
+        return $instance;
     }
 
 
     static function singleton(...$params): static
     {
         return static::singletonByParent('', ...$params);
-    }
-
-    /**
-     * clear singleton instance
-     */
-    static function clear(): void
-    {
-        self::$singleton = [];
     }
 
     /**

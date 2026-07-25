@@ -59,6 +59,18 @@ class InjectionAnnotation
 
 
     /**
+     * Set dependency injection data
+     * @param string $name
+     * @param mixed $value
+     * @return void
+     */
+    function offsetSet(string $name, mixed $value): void
+    {
+        $this->bind($name, $value);
+    }
+
+
+    /**
      * set the already bound dependency injection data when it's array type
      * @param string $name
      * @param string $key
@@ -88,17 +100,6 @@ class InjectionAnnotation
             return;
         $this->attributes[$name][] = $value;
         $this->incrAttributeSerialNum();
-    }
-
-    /**
-     * Set dependency injection data
-     * @param string $name
-     * @param mixed $value
-     * @return void
-     */
-    function offsetSet(string $name, mixed $value): void
-    {
-        $this->bind($name, $value);
     }
 
     /**
@@ -147,6 +148,30 @@ class InjectionAnnotation
         return $this->attributes[$name] ?? null;
     }
 
+
+    /**
+     * get binding data assign key of value
+     * @param string $name
+     * @param string $key
+     * @return mixed
+     */
+    function hGet(string $name, string $key): mixed
+    {
+        $data = $this->attributes[$name] ?? [];
+        return $data[$key] ?? null;
+    }
+
+    /**
+     * take the binding data in JSON format
+     * @param string $name
+     * @return string|null
+     */
+    function takeToJson(string $name): ?string
+    {
+        $data = $this->take($name);
+        return is_array($data) ? json_encode($data, 256) : '{}';
+    }
+
     /**
      * get binding data
      * @param string $name
@@ -178,10 +203,10 @@ class InjectionAnnotation
     }
 
     /**
-     * Obtain the binding data in JSON format
+     * take all binding data in JSON format
      * @return string|null
      */
-    function takeAllToJson(): ?string
+    function takeAllToJson(string $name): ?string
     {
         return json_encode($this->takeAll(), 256);
     }
@@ -216,7 +241,7 @@ class InjectionAnnotation
      */
     function exists(string $name): bool
     {
-        return isset($this->attributes[$name]);
+        return array_key_exists($name, $this->attributes);
     }
 
     /**
@@ -227,6 +252,19 @@ class InjectionAnnotation
     function offsetExists(string $name): bool
     {
         return $this->exists($name);
+    }
+
+
+    /**
+     * Check whether the bound data exists
+     * @param string $name
+     * @param string $key
+     * @return bool
+     */
+    function hExists(string $name, string $key): bool
+    {
+        $data = $this->take($name);
+        return $data && array_key_exists($key, $data);
     }
 
     /**

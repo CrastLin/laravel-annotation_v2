@@ -4,6 +4,7 @@ namespace Crastlin\LaravelAnnotation;
 
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
 use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
+use Crastlin\LaravelAnnotation\Annotation\Context;
 use Crastlin\LaravelAnnotation\Commands\ConfigGenerator;
 use Crastlin\LaravelAnnotation\Commands\NodeGenerator;
 use Crastlin\LaravelAnnotation\Commands\NodeStoreGenerator;
@@ -51,8 +52,11 @@ class AnnotationProvider extends ServiceProvider
     public function register(): void
     {
         $this->setupConfig();
-        $this->app->singleton('crastlin.annotation.injection',
+        $this->app->bind('crastlin.annotation.injection',
             fn($app) => new InjectionAnnotation()
+        );
+        $this->app->bind('crastlin.annotation.context',
+            fn($app) => new Context(request())
         );
         $this->app->singleton('crastlin.annotation.interceptor',
             fn($app) => new InterceptorAnnotation()
