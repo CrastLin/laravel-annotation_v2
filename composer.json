@@ -1,7 +1,6 @@
 {
-    "name": "crastlin/laravel-annotation_v2",
-    "description": "The implemented annotations include routing, permission menu, concurrency lock, validator, and dependency injection",
-    "version": "v1.2.4",
+    "name": "crastlin/laravel-annotation",
+    "description": "This annotation package, built upon the 2.x version, adds support for Laravel 12.x + Octane + FrankenPHP, and introduces the use of context facades. It can be utilized for customizing stored data and objects within the request lifecycle, enhancing hot updates for bound data, and monitoring whether injected data is updated during invoke proxy calls",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -11,7 +10,7 @@
         }
     ],
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2",
         "ext-json": "*",
         "ext-redis": "*"
     },
@@ -20,12 +19,5 @@
             "Crastlin\\LaravelAnnotation\\": "src/"
         }
     },
-    "minimum-stability": "dev",
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Crastlin\\LaravelAnnotation\\AnnotationProvider"
-            ]
-        }
-    }
+    "minimum-stability": "dev"
 }

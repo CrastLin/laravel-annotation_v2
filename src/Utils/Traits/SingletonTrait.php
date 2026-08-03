@@ -5,6 +5,7 @@ namespace Crastlin\LaravelAnnotation\Utils\Traits;
 
 use Crastlin\LaravelAnnotation\Annotation\Annotation;
 use Crastlin\LaravelAnnotation\Annotation\AnnotationException;
+use Crastlin\LaravelAnnotation\Facades\Context;
 use Crastlin\LaravelAnnotation\Facades\Injection;
 use ErrorException;
 use ReflectionClass;
@@ -27,7 +28,7 @@ trait SingletonTrait
         $name = $name ? (str_contains($name, '\\') ? $name : $baseNameSpace . '\\' . $name) : static::class;
         $key = "singleton.{$name}_" . md5(serialize($params));
         $reflectClass = Injection::exists("reflect.{$name}") ? Injection::take("reflect.{$name}") : null;
-        $instance = Injection::exists($key) ? Injection::take($key) : null;
+        $instance = Context::exists($key) ? Context::get($key) : null;
         if (!$instance) {
             if (!class_exists($name))
                 throw new AnnotationException("class: {$name} is not exists", 407);
@@ -36,6 +37,7 @@ trait SingletonTrait
             if ($constructor = $reflectClass->getConstructor())
                 Annotation::handleInvokeAnnotation($name, $constructor, [], $params, true, true);
             $instance = new $name(...$params);
+            Context::set($key, $instance);
         }
         if (!$instance instanceof static)
             throw new AnnotationException("sub class: {$name} must instanceof " . static::class, 408);

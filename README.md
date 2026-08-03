@@ -1,22 +1,24 @@
-# laravel-annotation_v2 使用指南
+# laravel-annotation 使用指南
 
-> 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh) 原生支持了，这有利于我们创建更快更好用的注解工具利器，为我们的编码工作带来更高的效率。之前开发的 [PHP7.x + Laravel5.8.x 注解插件](https://github.com/CrastLin/laravel-annotation) 在leanKu上受到不少朋友的关注，但大部分朋友已经全面切到PHP8+，希望能发布PHP8系列注解插件，虽然现在很多PHPer都转战Golang了，但PHP在我心中依旧占一席之地！所以我依然希望能为PHP开源尽点微薄之力，希望它越来越好，重回巅峰时刻。
+> 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh) 原生支持了，这有利于我们创建更快更好用的注解工具利器，为我们的编码工作带来更高的效率。随着frankenPHP(https://frankenphp.dev)的兴起并逐渐走向成熟，其基于常驻内存的利用GO协程worker运行机制，大大的提升了服务效率及响应速度，并节约了大量的服务器资源。此扩展包在2.x版本基础上增加对laravel 12.x + octane + frankenPHP 支持，并且增加上下文门面使用，可用于请求生命周期内自定义存储数据及对象，增加绑定数据热更新，invoke代理调用时，会监听注入数据是否更新
 
-- laravel-annotation_v2已实现的模块有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造方法（Constructor）、Setter方法（Method）、参数（Parameter），可支持Laravel
+- laravel-annotation v3.x支持的模块有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造方法（Constructor）、Setter方法（Method）、参数（Parameter），可支持Laravel
   config配置注入和Env环境配置注入。
 
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation 传送 ](https://github.com/CrastLin/laravel-annotation)
 * [Laravel5.8 + PHP7.x 系列的 laravel-annotation使用demo](https://github.com/CrastLin/laravel-annotation-demo)
+* [Laravel9.x++ PHP8.1++ PHP-FPM模式传送](https://github.com/CrastLin/laravel-annotation_v2.git)
 
 ## 1、环境和安装
 ### 1.1. 环境要求
-- 由于使用了[PHP8.1和枚举特性](https://www.php.net/releases/8.1/en.php)，因此PHP版本最低要求 >= 8.1，推荐版本 >= 8.2.24，框架版本使用的是 Laravel 9.x ([LeanKu Laravel9.x中文文档](https://learnku.com/docs/laravel/9.x))
+- PHP版本最低要求 >= 8.2，推荐版本 >= 8.3
+- Laravel框架版本最低11.x，推荐使用12.x ([LeanKu Laravel12.x中文文档](https://learnku.com/docs/laravel/12.x))
 
 ### 1.2. 安装依赖包
 ````shell
-composer require crastlin/laravel-annotation_v2:v1.2.1
+composer require crastlin/laravel-annotation:2.0.0beta
 ```` 
-> Tips: 也可以在composer.json的 require内定义：`"crastlin/laravel-annotation_v2": "^v1.2.1"`
+> Tips: 也可以在composer.json的 require内定义：`"crastlin/laravel-annotation": "^2.0.0beta"`
 
 
 ## 2、初始化配置文件
@@ -30,6 +32,19 @@ sudo -u www php artisan annotation:config
 * 配置项在以下具体功能中会详情说明
 
 * 注意：根据实现的功能的需要，程序会生成缓存文件，以便更快的运行。文件根目录在`config/annotation.php`中的`annotation_path`项，默认目录在根目录的`data`目录，需要创建该目录，并且授权读写权限
+* laravel需要在bootstrap/providers.php中配置容器启动
+```php
+<?php
+
+use App\Providers\AppServiceProvider;
+use Crastlin\LaravelAnnotation\AnnotationProvider;
+
+return [
+    AppServiceProvider::class,
+    AnnotationProvider::class,
+];
+
+```
 
 ## 3、路由模块
 

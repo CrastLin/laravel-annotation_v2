@@ -52,10 +52,10 @@ class AnnotationProvider extends ServiceProvider
     public function register(): void
     {
         $this->setupConfig();
-        $this->app->bind('crastlin.annotation.injection',
+        $this->app->scoped('crastlin.annotation.injection',
             fn($app) => new InjectionAnnotation()
         );
-        $this->app->bind('crastlin.annotation.context',
+        $this->app->scoped('crastlin.annotation.context',
             fn($app) => new Context(request())
         );
         $this->app->singleton('crastlin.annotation.interceptor',
@@ -91,9 +91,8 @@ class AnnotationProvider extends ServiceProvider
         $cache = file_exists($cacheFile) ? require $cacheFile : [];
         $isSingle = !empty($config['route']['is_single_mode']);
         $namespace = $config['route']['namespace'] ?? 'App\Http\Controllers';
-        $path = Request::capture()->path();
-        if (!empty($config['route']['auto_create_case']) && !empty($path) && preg_match('#^(\w+)(/[\w/]+)?$#', $path, $matches)) {
-            if (!empty($matches[1]) && ((empty($cache['modules']) && !$isSingle) || !RouteAnnotation::exists($path, $routeBasePath))) {
+        if (!empty($config['route']['auto_create_case'])) {
+            if ((empty($cache['modules']) && !$isSingle) || !RouteAnnotation::exists($path, $routeBasePath)) {
                 $locker = null;
                 try {
                     $locker = Sync::create('distributed_lock:create_route_with_node');
