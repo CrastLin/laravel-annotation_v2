@@ -1,6 +1,6 @@
 # laravel-annotation 使用指南
 
-> 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh) 原生支持了，这有利于我们创建更快更好用的注解工具利器，为我们的编码工作带来更高的效率。随着frankenPHP(https://frankenphp.dev)的兴起并逐渐走向成熟，其基于常驻内存的利用GO协程worker运行机制，大大的提升了服务效率及响应速度，并节约了大量的服务器资源。此扩展包在2.x版本基础上增加对laravel 12.x + octane + frankenPHP 支持，并且增加上下文门面使用，可用于请求生命周期内自定义存储数据及对象，增加绑定数据热更新，invoke代理调用时，会监听注入数据是否更新
+> 从PHP8开始已经对[注解（Attribute）](https://www.php.net/releases/8.0/zh) 原生支持了，这有利于我们创建更快更好用的注解工具利器，为我们的编码工作带来更高的效率。2.x系列支持laravel/octane 启动服务，用于支持worker运行机制，大大的提升了服务效率及响应速度，并节约了大量的服务器资源。本次更新在原1.x稳定版本基础上新增了上下文facade可用于请求生命周期内自定义存储数据及对象，增加Service依赖注入Injection绑定上下文更新，适用于invoke代理调用更新
 
 - laravel-annotation v3.x支持的模块有：路由、菜单权限、拦截器（包含并发锁、Laravel验证器集成）、依赖注入。支持的注解位置类（Class）、属性（Property）、构造方法（Constructor）、Setter方法（Method）、参数（Parameter），可支持Laravel
   config配置注入和Env环境配置注入。
