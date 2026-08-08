@@ -27,6 +27,16 @@ class Context
     {
     }
 
+
+    /**
+     * get context request
+     * @return Request
+     */
+    function request(): Request
+    {
+        return $this->request;
+    }
+
     /**
      * check data name when is exists
      * @param string $name

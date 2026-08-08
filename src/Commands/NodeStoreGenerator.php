@@ -37,7 +37,8 @@ class NodeStoreGenerator extends Command
         }
         $table = $config['node']['table'] ?? 'node';
         $connection = $config['node']['connection'] ?? 'mysql';
-        if ($errText = GeneratorStoreTable::builder($table, $connection)) {
+        $generateStore = new GeneratorStoreTable();
+        if ($errText = $generateStore->builder($table, $connection)) {
             $this->warn($errText);
             return;
         }

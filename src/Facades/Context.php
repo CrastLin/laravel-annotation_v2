@@ -9,6 +9,7 @@ use Crastlin\LaravelAnnotation\Annotation\Context as ContextAnnotation;
 /**
  * @package Inject
  * @mixin ContextAnnotation
+ * @method static void request()
  * @method static bool exists(string $name)
  * @method static void set(string $name, mixed $value)
  * @method static mixed get(string $name)

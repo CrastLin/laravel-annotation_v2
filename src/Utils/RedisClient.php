@@ -3,13 +3,12 @@ declare (strict_types=1);
 
 namespace Crastlin\LaravelAnnotation\Utils;
 
+use Crastlin\LaravelAnnotation\Facades\Context;
 use Crastlin\LaravelAnnotation\Utils\Traits\RedisClientTrait;
 
 final class RedisClient
 {
     use RedisClientTrait;
-
-    private static ?array $singletonContainers = [];
 
     protected array $options = [
         'host' => '127.0.0.1',
@@ -74,14 +73,13 @@ final class RedisClient
     {
         $options = !empty($options) ? $options : config('annotation.redis.master');
         $options['db'] = !is_null($select) ? $select : (!empty($options['db']) ? (int)$options['db'] : 0);
-        if (PHP_SAPI == 'cli') {
-            return new self($options);
-        } else {
-            if (!isset(self::$singletonContainers[$select]) || !isset(self::$singletonContainers[$select]->redis) || !self::$singletonContainers[$select]->redis->isConnected()) {
-                self::$singletonContainers[$select] = new self($options);
-            }
-            return self::$singletonContainers[$select];
+        $rk = "redis_client_" . md5("{$options['host']}:{$options['port']}:{$options['db']}");
+        $instance = Context::exists($rk) ? Context::get($rk) : null;
+        if (!$instance) {
+            $instance = new self($options);
+            Context::set($rk, $instance);
         }
+        return $instance;
     }
 
     /**
@@ -92,17 +90,4 @@ final class RedisClient
     {
         return $this->redis;
     }
-
-
-    public function __destruct()
-    {
-        if (isset(self::$singletonContainers)) {
-            foreach (self::$singletonContainers as $instance):
-                if (isset($instance->redis) && $instance->redis->isConnected())
-                    $instance->redis->close();
-            endforeach;
-        }
-        self::$singletonContainers = null;
-    }
-
 }

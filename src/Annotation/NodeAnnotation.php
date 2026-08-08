@@ -153,6 +153,7 @@ class NodeAnnotation extends Annotation
     static function build(array $analysisResult, string $savePath): void
     {
         $hasParentErrors = false;
+        $generateStore = new GeneratorStoreTable();
         foreach ($analysisResult as $items) {
             foreach ($items as $item) {
                 if (empty($item['data']))
@@ -160,11 +161,11 @@ class NodeAnnotation extends Annotation
                 try {
                     [$tree, $path, $module] = [$item['data'], $item['path'], $item['module']];
                     if (!empty($tree->virtualNode)) {
-                        if (GeneratorStoreTable::store($tree, $module, $tree->ct))
+                        if ($generateStore->store($tree, $module, $tree->ct))
                             echo "+- <Tree> [SUCCESS] [{$tree->name}] {$module}/{$tree->ct}/{$tree->virtualNode} </Tree>" . PHP_EOL;
                     }
                     foreach ($tree->nodeList as $node) {
-                        if (GeneratorStoreTable::store($node, $module, $tree->ct))
+                        if ($generateStore->store($node, $module, $tree->ct))
                             echo "+--- <Node> [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} </Node>" . PHP_EOL;
                     }
                 } catch (\Throwable $exception) {

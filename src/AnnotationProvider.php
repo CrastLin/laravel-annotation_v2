@@ -105,7 +105,7 @@ class AnnotationProvider extends ServiceProvider
                     }
                 } catch (\Throwable $exception) {
                     $locker && $locker->unlock();
-                    throw new AnnotationException('message: ' . $exception->getMessage() . " file: " . $exception->getFile() . ' -> ' . $exception->getLine());
+                    throw new AnnotationException('message: ' . $exception->getMessage() . " file: " . $exception->getFile() . ' -> ' . $exception->getLine() . "\r\n" . $exception->getTraceAsString());
                 }
             }
         }

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class GeneratorStoreTable
 {
 
-    static string $generator = "CREATE TABLE IF NOT EXISTS `<tableName>` (
+    protected string $nodeStoreTable = "CREATE TABLE IF NOT EXISTS `<tableName>` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `parent_id` int unsigned NOT NULL DEFAULT '0' COMMENT 'parent id',
   `name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'menu name',
@@ -35,54 +35,54 @@ class GeneratorStoreTable
   KEY `parent_id` (`parent_id`) USING BTREE,
   KEY `code` (`code`) USING BTREE,
   KEY `rule` (`rule`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='node and Permissions data';";
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='node and Permissions data';";
 
-    static protected array $nodeConfig = [];
+    protected array $nodeConfig = [];
 
 
-    static function builder(string $table, string $connection): string
+    function builder(string $table, string $connection): string
     {
         try {
-            DB::connection($connection)->update(str_replace('<tableName>', $table, self::$generator));
+            DB::connection($connection)->update(str_replace('<tableName>', $table, $this->nodeStoreTable));
             return '';
         } catch (\Throwable $throwable) {
             return $throwable->getMessage();
         }
     }
 
-    static function nodeById(int $id = 0): NodeModel
+    function nodeById(int $id = 0): NodeModel
     {
         $node = new NodeModel();
-        $md = $node->setConnection(self::$nodeConfig['connection'])->setTable(self::$nodeConfig['table']);
+        $md = $node->setConnection($this->nodeConfig['connection'])->setTable($this->nodeConfig['table']);
         return $id > 0 ? $md->find($id) : $node;
     }
 
-    static function node(string $module, string $controller, string $action): ?NodeModel
+    function node(string $module, string $controller, string $action): ?NodeModel
     {
         $node = new NodeModel();
-        return $node->setConnection(self::$nodeConfig['connection'])->setTable(self::$nodeConfig['table'])->where(['module' => $module, 'controller' => $controller, 'action' => $action])->first();
+        return $node->setConnection($this->nodeConfig['connection'])->setTable($this->nodeConfig['table'])->where(['module' => $module, 'controller' => $controller, 'action' => $action])->first();
     }
 
-    static function store(\stdClass $std, string $module, string $controller): bool
+    function store(\stdClass $std, string $module, string $controller): bool
     {
         $isTree = !empty($std->virtualNode);
         $action = $std->action ?? ($isTree ? $std->virtualNode : '');
         $parentId = 0;
-        if (empty(self::$nodeConfig))
-            self::$nodeConfig = config('annotation.node');
+        if (empty($this->nodeConfig))
+            $this->nodeConfig = config('annotation.node');
 
         if (!empty($std->parent)) {
             $split = explode('/', $std->parent);
-            $parent = self::node($split[0], $split[1], $split[2]);
+            $parent = $this->node($split[0], $split[1], $split[2]);
             if (!$parent)
                 throw new AnnotationException("[{$std->name}] The parent node {$std->parent} of node {$module}/{$controller}->{$action} has not been generated", 600);
             $parentId = $parent->id;
         }
         if (empty($action))
             throw new AnnotationException('the node action is not defined | node: ' . json_encode($std), 500);
-        $node = self::node($module, $controller, $action);
+        $node = $this->node($module, $controller, $action);
         if (!$node) {
-            $node = self::nodeById();
+            $node = $this->nodeById();
             $node->module = $module;
             $node->controller = $controller;
             $node->action = $action;
