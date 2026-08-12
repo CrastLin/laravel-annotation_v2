@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace Crastlin\LaravelAnnotation\Facades;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Facade;
 use Crastlin\LaravelAnnotation\Annotation\Context as ContextAnnotation;
 
 /**
  * @package Inject
  * @mixin ContextAnnotation
- * @method static void request()
+ * @method static Request request()
  * @method static bool exists(string $name)
  * @method static void set(string $name, mixed $value)
  * @method static mixed get(string $name)
