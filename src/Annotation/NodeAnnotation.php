@@ -5,6 +5,7 @@ namespace Crastlin\LaravelAnnotation\Annotation;
 
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Node;
 use Crastlin\LaravelAnnotation\Annotation\Attributes\Tree;
+use Crastlin\LaravelAnnotation\Enum\NodeCode;
 use Crastlin\LaravelAnnotation\Enum\NodeMode;
 use Crastlin\LaravelAnnotation\Store\GeneratorStoreTable;
 use ReflectionAttribute;
@@ -34,11 +35,8 @@ class NodeAnnotation extends Annotation
         $tree = new stdClass();
         $tree->module = $module = !empty($parameters[0]) ? $parameters[0] : 'Single';
         [$tree->controller, $tree->ct] = $this->getController();
-        $tree->virtualNode = 'defaultPage';
         $tree->checkMode = NodeMode::LOOSE_MODE;
         $this->matchAllAttribute($classAttributes, $tree);
-        if (!$tree)
-            return [];
 
         $tree->nodeList = [];
         $methods = $this->reflectClass->getMethods(\ReflectionMethod::IS_PUBLIC);
@@ -72,18 +70,21 @@ class NodeAnnotation extends Annotation
      */
     protected function matchAllAttribute(array $classAttributes, stdClass &$node, ?stdClass $tree = null): void
     {
-        $isMatched = false;
         $path = $tree ? "{$tree->module}/{$tree->controller}->{$node->action}" : '';
         foreach ($classAttributes as $classAttribute) {
             $attributeClass = $classAttribute->getName();
-            if (!in_array($attributeClass, !$tree ? [Tree::class, Node::class] : [Node::class]))
+            // match class attribute
+            if (!$tree && !in_array($attributeClass, [Tree::class, Node::class]))
                 continue;
-            $isMatched = true;
+
+            // match sub actions attributes
+            if ($tree && $attributeClass != Node::class)
+                continue;
+
             $annotation = $classAttribute->newInstance();
             switch ($attributeClass) {
                 case Tree::class:
-                    if ($annotation->isMenuNode)
-                        $node->virtualNode = !empty($annotation->virtualNode) ? $annotation->virtualNode : 'defaultPage';
+                    $node->virtualNode = !empty($annotation->virtualNode) ? $annotation->virtualNode : 'defaultPage';
                     $node->name = !empty($annotation->name) ? $annotation->name : $node->ct;
                     $node->sort = $annotation->sort ?? 0;
                     $node->preNamedSubMethods = !empty($annotation->preNamedSubMethods) ? explode(',', $annotation->preNamedSubMethods) : [];
@@ -104,15 +105,16 @@ class NodeAnnotation extends Annotation
                     if (!empty($tree->preNamedSubMethods) && in_array($node->action, $tree->preNamedSubMethods))
                         $node->name = "{$tree->name}{$node->name}";
                     $node->sort = $annotation->sort ?? 0;
-                    if (!$tree) {
+                    if (empty($tree->virtualNode)) {
                         $node->preNamedSubMethods = !empty($annotation->preNamedSubMethods) ? explode(',', $annotation->preNamedSubMethods) : [];
                         if (!empty($annotation->parent)) {
                             $ps = explode('/', $annotation->parent);
                             $count = count($ps);
                             $node->parent = match ($count) {
-                                1 => "{$node->module}/{$node->ct}/{$annotation->parent}",
-                                2 => "{$node->module}/{$annotation->parent}",
+                                1 => "{$tree->module}/{$tree->ct}/{$annotation->parent}",
+                                2 => "{$tree->module}/{$annotation->parent}",
                                 3 => $annotation->parent,
+                                default => 'none',
                             };
                         }
                     } else {
@@ -128,11 +130,11 @@ class NodeAnnotation extends Annotation
                                 3 => $annotation->parent,
                                 default => 'none',
                             };
-                            if ($node->parent == 'none')
-                                throw new AnnotationException("{$path} Incorrect parent node setting", 501);
                         }
-                        $node->code = $annotation->code;
                     }
+                    if (empty($node->parent) || $node->parent == 'none')
+                        throw new AnnotationException("{$path} Incorrect parent node setting", 501);
+                    $node->code = $annotation->code ?? NodeCode::QUERY;
                     $node->icon = $annotation->icon ?? '';
                     $node->remark = $annotation->remark ?? '';
                     $node->ignore = $annotation->ignore;
@@ -146,14 +148,11 @@ class NodeAnnotation extends Annotation
             $node->isAuthNode = $annotation->isAuthNode;
             break;
         }
-        if (!$isMatched && !$tree)
-            $node = null;
     }
 
     static function build(array $analysisResult, string $savePath): void
     {
         $hasParentErrors = false;
-        $generateStore = new GeneratorStoreTable();
         foreach ($analysisResult as $items) {
             foreach ($items as $item) {
                 if (empty($item['data']))
@@ -161,11 +160,11 @@ class NodeAnnotation extends Annotation
                 try {
                     [$tree, $path, $module] = [$item['data'], $item['path'], $item['module']];
                     if (!empty($tree->virtualNode)) {
-                        if ($generateStore->store($tree, $module, $tree->ct))
+                        if (GeneratorStoreTable::store($tree, $module, $tree->ct))
                             echo "+- <Tree> [SUCCESS] [{$tree->name}] {$module}/{$tree->ct}/{$tree->virtualNode} </Tree>" . PHP_EOL;
                     }
                     foreach ($tree->nodeList as $node) {
-                        if ($generateStore->store($node, $module, $tree->ct))
+                        if (GeneratorStoreTable::store($node, $module, $tree->ct))
                             echo "+--- <Node> [SUCCESS] [{$node->name}] {$module}/{$tree->ct}/{$node->action} </Node>" . PHP_EOL;
                     }
                 } catch (\Throwable $exception) {
