@@ -800,7 +800,7 @@ php;
                 $conf = config('annotation.inject');
                 $needChangeType = !empty($conf['auto_conversion_type']);
 
-                if (($needChangeType && $valueTypeOf != $property->typeof) || (is_null($value) && !$property->allowsNull)) {
+                if (($needChangeType && $valueTypeOf != $property->typeof) || (is_null($value) && empty($property->allowsNull))) {
                     switch ($property->typeof) {
                         case 'string':
                             $value = in_array($valueTypeOf, ['int', 'float']) ? strval($value) : '';
